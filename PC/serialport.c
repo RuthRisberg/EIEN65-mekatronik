@@ -9,16 +9,15 @@
 #include <stdio.h>
 #include <unistd.h>
 
-
-
 /* baudrate settings are defined in <asm/termbits.h>, which is
  * included by <termios.h> */
 #ifndef BAUDRATE
 #define BAUDRATE B2400
 #endif
 
-#define _POSIX_SOURCE 0		/* POSIX compliant source */
+#define _POSIX_SOURCE 0 /* POSIX compliant source */
 
+static int isopen;
 static int fd;
 static struct termios oldtio, newtio;
 static char *device;
@@ -29,15 +28,24 @@ int serial_init(char *modemdevice, int canonical)
      * Open modem device for reading and writing and not as controlling tty
      * because we don't want to get killed if linenoise sends CTRL-C.
      **/
+    if (isopen)
+    {
+        // The code in this file would need some work to handle multiple simultaneous
+        // open ports while still giving proper error messages. Since this project will only use one,
+        // I don't think that's worth doing.
+        fprintf(stderr, "ERROR! Trying to open port %s while port %s is still open!\n", modemdevice, device);
+        exit(-1);
+    }
     device = modemdevice;
-    fd = open (device, O_RDWR | O_NOCTTY );
+    fd = open(device, O_RDWR | O_NOCTTY);
     if (fd < 0)
-      {
-	  perror (device);
-	  exit(-1);
-      }
+    {
+        perror(device);
+        exit(-1);
+    }
+    isopen = 1;
 
-    tcgetattr (fd, &oldtio);	/* save current serial port settings */
+    tcgetattr(fd, &oldtio); /* save current serial port settings */
     memcpy(&newtio, &oldtio, sizeof(newtio));
 
     cfsetispeed(&newtio, BAUDRATE);
@@ -53,39 +61,42 @@ int serial_init(char *modemdevice, int canonical)
     newtio.c_cflag &= ~CSIZE;
     newtio.c_cflag &= ~PARENB;
     newtio.c_cflag &= ~CSTOPB;
-    newtio.c_cflag &= ~CRTSCTS;
-    newtio.c_cflag |=  CS8 | CLOCAL | CREAD;
+    newtio.c_cflag &= ~CRTSCTS; // CRTSCTS only seems to exist on my linux laptop if __USE_MISC is defined?
+    newtio.c_cflag |= CS8 | CLOCAL | CREAD;
 
-  /*This part has been commented to make it work with the AVR*/
+    /*This part has been commented to make it work with the AVR*/
     /*
      *ICRNL   : map CR to NL (otherwise a CR input on the other computer
      *          may not terminate input)
      *          otherwise make device raw (no other input processing)
      **/
- //   newtio.c_iflag |=  ICRNL;
+    //   newtio.c_iflag |=  ICRNL;
 
-//#ifndef  SEND_RAW_NEWLINES
+    // #ifndef  SEND_RAW_NEWLINES
     /*
      * Map NL to CR NL in output.
      *                  */
-//    newtio.c_oflag |= ONLCR;
-//#else
-//    newtio.c_oflag &= ~ONLCR;
-//#endif
+    //    newtio.c_oflag |= ONLCR;
+    // #else
+    //    newtio.c_oflag &= ~ONLCR;
+    // #endif
 
     /*
      * ICANON  : enable canonical input, read line-by-line
      **/
-    if(canonical) {
-	newtio.c_lflag |= ICANON;
+    if (canonical)
+    {
+        newtio.c_lflag |= ICANON;
 #ifdef ECHO
-    /* If you use canonical mode to use line editing, you may
-     * want to turn on echo of characters to make the edits to show
-     * in the sending terminal */
-    newtio.c_lflag |= ECHO | ECHOE;
+        /* If you use canonical mode to use line editing, you may
+         * want to turn on echo of characters to make the edits to show
+         * in the sending terminal */
+        newtio.c_lflag |= ECHO | ECHOE;
 #endif
-    } else {
-	newtio.c_lflag &= ~ICANON;
+    }
+    else
+    {
+        newtio.c_lflag &= ~ICANON;
     }
 
     /*
@@ -96,8 +107,8 @@ int serial_init(char *modemdevice, int canonical)
     /*
      * now clean the modem line and activate the settings for the port
      **/
-    tcflush (fd, TCIFLUSH);
-    tcsetattr (fd, TCSANOW, &newtio);
+    tcflush(fd, TCIFLUSH);
+    tcsetattr(fd, TCSANOW, &newtio);
 
     /*
      * terminal settings done, return file descriptor
@@ -106,15 +117,20 @@ int serial_init(char *modemdevice, int canonical)
     return fd;
 }
 
-void serial_cleanup(int ifd){
-    if(ifd != fd) {
-	    fprintf(stderr, "WARNING! file descriptor != the one returned by serial_init()\n");
+void serial_cleanup()
+{
+    if (!isopen)
+    {
+        fprintf(stderr, "WARNING! Trying to close port when no port is open!\n");
     }
+    else
+    {
 #ifdef DRAIN_BEFORE_CLOSE
-    /* wait until all chars in buffer have been sent */
-    tcdrain(ifd);
+        /* wait until all chars in buffer have been sent */
+        tcdrain(fd);
 #endif
-    /* restore the old port settings */
-    tcsetattr (ifd, TCSANOW, &oldtio);
-    close(ifd);
+        /* restore the old port settings */
+        tcsetattr(fd, TCSANOW, &oldtio);
+        close(fd);
+    }
 }
