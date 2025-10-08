@@ -15,7 +15,7 @@
 #define BAUDRATE B2400
 #endif
 
-#define _POSIX_SOURCE 0 /* POSIX compliant source */
+#define _POSIX_SOURCE 1 /* POSIX compliant source (run through mingw) */
 
 static int isopen;
 static int fd;

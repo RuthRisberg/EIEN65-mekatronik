@@ -10,6 +10,6 @@ int serial_init(char *modemdevice, int canonical);
 /* 
  * restore the old port settings 
  */
-void serial_cleanup(int fd);
+void serial_cleanup();
 
 #endif
