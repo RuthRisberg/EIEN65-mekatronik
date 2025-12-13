@@ -11,12 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MSG_LEN
+
 int main(void)
 {
 	/*Declaration of variables*/
 	int sp,sl;
-	char cin[9];
-	char cout[9];
+	int command, data;
+	char msg_to_avr[MSG_LEN], msg_from_avr[MSG_LEN];
 	
 	/*Initialise serial port */
 	sp = serial_init("/dev/ttyS0",0);
@@ -28,43 +30,31 @@ int main(void)
 	{
 		printf("Serial port open with identifier %d \n",sp);
 	}
-	
-	/*Initialise both strings*/
-	/*The max size of the strings is 8 characters (by declaration)*/
-	/*Remember to leave space for the termination character!*/
-	
-	/*The output string is initialised through the keyboard...*/
-	printf("Please enter your desired string:");
-	scanf("%s", &cout);
-	//OBS! scanf will stop reading if there are any space characters. In that case, try using the function fgets instead!
 
-	/*The input string is initialised to xxxxxxxx*/
-	strncpy(cin,"xxxxxxxx",9);
+	while (1)
+	{
 	
-	/*Verify that the strings were successfully initialised... */	
-	printf("Output: %s, Input: %s \n", cout, cin);
+		printf("Enter command: ");
+		scanf("%d", &command);
+		printf("\n");
 
-	/*Send the string out */
-	write(sp,cout,9);
-	/*NOTE: The string itself may be smaller than 9 bytes... 
-	but we are still sending 9 bits. 
-	When communicating with the AVR we must be more careful! 
-	We may want to use fixed string length all the time,
-	or have a for loop and send one character at a time*/
+		if (command == -1)
+			break;
+
+		printf("Enter data: ");		
+		printf("Output: %s, Input: %s \n", cout, cin);
+		printf("\n");
+
+		write(sp,msg_to_avr,MSG_LEN);
+		
+		sleep(1);
+		
+		read(sp,msg_from_avr,MSG_LEN);
+		
+		printf("Answer: %d %d %d\n", msg_from_avr[0], msg_from_avr[1], msg_from_avr[2]);
+	}
 	
-	
-	/*Wait a little bit... (or until a signal comes!)*/
-	sleep(1);
-	
-	/*Read the incoming string */
-	read(sp,cin,9);
-	
-	/*Check that the input string is equal to the output one! */
-	printf("Output: %s, Input: %s \n", cout, cin);
-	
-	/*Close the serial port */	
 	serial_cleanup();
 
-	/* Exit with code 0 since everything is ok */
 	return 0;
 }

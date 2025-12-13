@@ -1,15 +1,19 @@
 #ifndef eien65_globals_h
 #define eien65_globals_h
 
-char shadow_PORTB = 0;
-char shadow_PORTC = 0;
-char shadow_PORTD = 0;
+#ifndef F_CPU
+#define F_CPU 1000000UL
+#endif
+
+extern char shadow_PORTB;
+extern char shadow_PORTC;
+extern char shadow_PORTD;
 
 typedef enum state_t state_t; 
 enum state_t {
     STATE_BLINKY
 };
-state_t state = STATE_BLINKY;
+extern state_t state;
 
 typedef enum error_msg_t error_msg_t;
 enum error_msg_t {
@@ -17,9 +21,10 @@ enum error_msg_t {
     INDEX_OUT_OF_BOUNDS,
     BUFFER_FULL,
     INCORRECT_PARITY,
-    INVALID_STATE
+    INVALID_STATE,
+	UNKNOWN_COMMAND
 };
-void error(error_msg); // defined in serial (to avoid circular dependencies)
+void error(error_msg_t); // defined in serial (to avoid circular dependencies)
 
 typedef enum transmit_headers_t transmit_headers_t; 
 enum transmit_headers_t {

@@ -1,9 +1,16 @@
+#include "globals.h"
 #include <avr/io.h>
+#include <util/delay.h>
+#include <avr/interrupt.h>
 #include "leds.h"
 #include "serial.h"
-#include "globals.h"
 
 #define LED0 PD2
+
+state_t state = STATE_BLINKY;
+char shadow_PORTB = 0;
+char shadow_PORTC = 0;
+char shadow_PORTD = 0;
 
 void setup()
 {
@@ -25,11 +32,12 @@ void take_input()
         break;
     
     default:
+		error(UNKNOWN_COMMAND);
         break;
     }
 }
 
-void main ()
+int main ()
 {
     setup();
     while (1)

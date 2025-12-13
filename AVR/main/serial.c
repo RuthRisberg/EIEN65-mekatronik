@@ -2,9 +2,8 @@
 #include "serial.h"
 #include "globals.h"
 
-#define F_OSC 1000000
 #define BAUD 9600
-#define MYUBRR FOSC/16/BAUD-1
+#define MYUBRR (F_CPU/16/BAUD-1)
 
 static int inited = 0;
 
@@ -13,7 +12,7 @@ void init_serial()
     UBRR0H = (unsigned char)(MYUBRR >> 8);
     UBRR0L = (unsigned char)MYUBRR;
     UCSR0B |= (1<<RXEN0) | (1<<TXEN0);
-    UCSR0C = (1 << USCZ00) | (1 << USCZ01); // async, no parity, 1 stop bit, 8 bit data
+    // UCSR0C =// async, no parity, 1 stop bit, 8 bit data by default
     inited = 1;
 }
 
@@ -34,8 +33,8 @@ void send(char header, char payload)
     send_byte(header ^ payload); // parity
 }
 
-static char received_header = 0;
-static char received_payload = 0;
+static unsigned char received_header = 0;
+static unsigned char received_payload = 0;
 static int has_received = 0;
 int receive(char* header, char* payload) // returns 1 if message received
 {
@@ -50,7 +49,7 @@ int receive(char* header, char* payload) // returns 1 if message received
         return 0;
 }
 
-char receive_byte()
+unsigned char receive_byte()
 {
     while(!(UCSR0A & (1 << RXC0)));
     return UDR0;
@@ -68,7 +67,7 @@ ISR(USART_RX_vect)
     {
         received_header = receive_byte();
         received_payload = receive_byte();
-        if (received_header ^ received_payload == receive_byte()) // parity correct
+        if ((received_header ^ received_payload) == receive_byte()) // parity correct
         {
             has_received = 1;
         }
@@ -79,7 +78,7 @@ ISR(USART_RX_vect)
     }
 }
 
-void error(error_msg msg)
+void error(error_msg_t msg)
 {
     send(ERROR, msg);
 }
