@@ -10,15 +10,42 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
+#include <threads.h>
 
-#define MSG_LEN
+#include "shared_enums.h"
+
+#define MSG_LEN 3
+
+static volatile int stop = 0;
+
+int read_thread_func(void* serial)
+{
+	char msg_from_avr[MSG_LEN];
+	int header, data, checksum;
+	while (!stop)
+	{
+		read(serial,msg_from_avr,MSG_LEN); // pretty sure this blocks until 3 bytes arrive
+		header = msg_from_avr[0];
+		data = msg_from_avr[1];
+		checksum = msg_from_avr[2];
+
+		if ((header ^ data) != checksum)
+			printf("\rReceived broken answer: %d %d %d\n", header, data, checksum);
+		else if (header == ERROR)
+			printf("\rReceived: (%d)ERROR (%d)%s\n", header, data, get_error_msg(data));
+		else
+			printf("\rReceived: (%d)%s %d", header, get_avr_to_pc_header(header), data);
+	}
+}
 
 int main(void)
 {
 	/*Declaration of variables*/
 	int sp,sl;
-	int command, data;
-	char msg_to_avr[MSG_LEN], msg_from_avr[MSG_LEN];
+    thrd_t read_thread;
+    int temp, header, data;
+	char buf[20];
+	int index = 0;
 	
 	/*Initialise serial port */
 	sp = serial_init("/dev/ttyS0",0);
@@ -31,29 +58,58 @@ int main(void)
 		printf("Serial port open with identifier %d \n",sp);
 	}
 
-	while (1)
+	// receive messages from serial (write to stdout)
+    temp = thrd_create(&read_thread, read_thread_func, NULL);
+	assert(temp);
+
+	// send messages to serial (read from stdin)
+	while (!stop)
 	{
-	
-		printf("Enter command: ");
-		scanf("%d", &command);
-		printf("\n");
-
-		if (command == -1)
-			break;
-
-		printf("Enter data: ");		
-		printf("Output: %s, Input: %s \n", cout, cin);
-		printf("\n");
-
-		write(sp,msg_to_avr,MSG_LEN);
-		
-		sleep(1);
-		
-		read(sp,msg_from_avr,MSG_LEN);
-		
-		printf("Answer: %d %d %d\n", msg_from_avr[0], msg_from_avr[1], msg_from_avr[2]);
+		buf[index] = getchar();
+		index++;
+		if (buf[index] == ' ')
+		{
+			header = atoi(buf);
+			index = 0;
+		}
+		else if (buf[index] == '\n')
+		{
+			data = atoi(buf);
+			index = 0;
+			if (header >= 0 && header < 256)
+			{
+				printf("\rSending: (%d)%s %d\n", header, get_pc_to_avr_header(header), data);
+				buf[0] = header;
+				buf[1] = data;
+				buf[2] = buf[0] ^ buf[1];
+				write(sp,buf,3);
+				printf("Enter new command: ");
+			}
+			else if (header == -1)
+			{
+				printf("Stopping after next received message\n");
+				header = ECHO;
+				data = 0;
+				printf("\rSending: (%d)%s %d\n", header, get_pc_to_avr_header(header), data);
+				buf[0] = header;
+				buf[1] = data;
+				buf[2] = buf[0] ^ buf[1];
+				write(sp,buf,3);
+				stop = 1;
+				thrd_join(read_thread, temp);
+				printf("Result of stopping reader thread: %d\n", temp);
+			}
+			else
+			{
+				printf("Invalid command.\n");
+			}
+		}
+		else if (index == 20)
+		{
+			printf("\rRead buffer overflow. Resetting buffer.\n");
+		}
 	}
-	
+
 	serial_cleanup();
 
 	return 0;

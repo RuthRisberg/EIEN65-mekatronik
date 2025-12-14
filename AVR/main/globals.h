@@ -1,6 +1,8 @@
 #ifndef eien65_globals_h
 #define eien65_globals_h
 
+#include "shared_enums.h"
+
 #ifndef F_CPU
 #define F_CPU 1000000UL
 #endif
@@ -16,25 +18,10 @@ enum state_t {
 extern state_t state;
 
 typedef enum error_msg_t error_msg_t;
-enum error_msg_t {
-    UNINITIALIZED,
-    INDEX_OUT_OF_BOUNDS,
-    BUFFER_FULL,
-    INCORRECT_PARITY,
-    INVALID_STATE,
-	UNKNOWN_COMMAND
-};
 void error(error_msg_t); // defined in serial (to avoid circular dependencies)
 
-typedef enum transmit_headers_t transmit_headers_t; 
-enum transmit_headers_t {
-    ERROR,
-    ECHO_REPLY
-};
+typedef enum transmit_headers_t msg_avr_to_pc_t; 
 
-typedef enum receive_headers_t receive_headers_t; 
-enum receive_headers_t {
-    ECHO
-};
+typedef enum receive_headers_t msg_pc_to_avr_t; 
 
 #endif
