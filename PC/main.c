@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <threads.h>
+#include <assert.h>
 
 #include "shared_enums.h"
 
@@ -20,11 +21,19 @@ static volatile int stop = 0;
 
 int read_thread_func(void* serial)
 {
-	char msg_from_avr[MSG_LEN];
-	int header, data, checksum;
+	unsigned char msg_from_avr[MSG_LEN];
+	int header, data, checksum, index;
 	while (!stop)
 	{
-		read(serial,msg_from_avr,MSG_LEN); // pretty sure this blocks until 3 bytes arrive
+		index = 0;
+		while (index != 3)
+		{
+			while (!read(*((int*)serial),&msg_from_avr[index],1)); // pretty sure this blocks until 3 bytes arrive
+				//thrd_sleep(&(struct timespec){.tv_sec=1}, NULL) // wait 1 second until trying again
+			index++;
+			thrd_sleep(&(struct timespec){.tv_nsec=1000000}, NULL); // wait 1 ms
+		}
+
 		header = msg_from_avr[0];
 		data = msg_from_avr[1];
 		checksum = msg_from_avr[2];
@@ -34,14 +43,15 @@ int read_thread_func(void* serial)
 		else if (header == ERROR)
 			printf("\rReceived: (%d)ERROR (%d)%s\n", header, data, get_error_msg(data));
 		else
-			printf("\rReceived: (%d)%s %d", header, get_avr_to_pc_header(header), data);
+			printf("\rReceived: (%d)%s %d\n", header, get_avr_to_pc_header(header), data);
 	}
+	return 0;
 }
 
 int main(void)
 {
 	/*Declaration of variables*/
-	int sp,sl;
+	int sp;
     thrd_t read_thread;
     int temp, header, data;
 	char buf[20];
@@ -59,7 +69,7 @@ int main(void)
 	}
 
 	// receive messages from serial (write to stdout)
-    temp = thrd_create(&read_thread, read_thread_func, NULL);
+    temp = thrd_create(&read_thread, read_thread_func, &sp);
 	assert(temp);
 
 	// send messages to serial (read from stdin)
@@ -67,12 +77,12 @@ int main(void)
 	{
 		buf[index] = getchar();
 		index++;
-		if (buf[index] == ' ')
+		if (buf[index-1] == ' ')
 		{
 			header = atoi(buf);
 			index = 0;
 		}
-		else if (buf[index] == '\n')
+		else if (buf[index-1] == '\n')
 		{
 			data = atoi(buf);
 			index = 0;
@@ -96,7 +106,7 @@ int main(void)
 				buf[2] = buf[0] ^ buf[1];
 				write(sp,buf,3);
 				stop = 1;
-				thrd_join(read_thread, temp);
+				thrd_join(read_thread, &temp);
 				printf("Result of stopping reader thread: %d\n", temp);
 			}
 			else

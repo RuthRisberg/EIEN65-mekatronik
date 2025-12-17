@@ -20,6 +20,7 @@ void init_leds()
     PORTC |= 1 << LED3;
     PORTB |= 1 << LED4;
     PORTB |= 1 << LED5;
+	all_leds_off();
 }
 void all_leds_off()
 {
