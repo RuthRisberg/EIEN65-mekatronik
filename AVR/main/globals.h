@@ -12,9 +12,6 @@ extern char shadow_PORTC;
 extern char shadow_PORTD;
 
 typedef enum state_t state_t; 
-enum state_t {
-    STATE_BLINKY
-};
 extern state_t state;
 
 typedef enum error_msg_t error_msg_t;

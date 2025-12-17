@@ -9,22 +9,38 @@ enum error_msg_t {
     INVALID_STATE,
 	UNKNOWN_COMMAND
 };
-char* get_error_msg(enum error_msg_t);
-
 enum msg_avr_to_pc_t {
 	INVALID_MSG_AVR,
     ERROR,
     ECHO_REPLY,
 	RECEIVED_HEADER,
 	RECEIVED_DATA,
-	RECEIVED_PARITY
+	RECEIVED_PARITY,
+    BTN_STATUS,
+    POTENTIOMETER_STATUS,
+    CURRENT_STATE
 };
-char* get_avr_to_pc_header(enum msg_avr_to_pc_t);
-
 enum msg_pc_to_avr_t {
 	INVALID_MSG_PC,
+    SET_STATE_NONE,
+    GET_STATE,
+    START_BLINK_LED,
+    STOP_BLINK_LED,
+    START_REPORT_BTNS,
+    STOP_REPORT_BTNS,
+    START_REPORT_POTENTIOMETER,
+    STOP_REPORT_POTENTIOMETER,
+    READ_BTNS,
+    READ_POTENTIOMETER,
+    TURN_ON_LED,
+    TURN_OFF_LED,
+    SET_PWM1,
+    SET_PWM2,
     ECHO
 };
-char* get_pc_to_avr_header(enum msg_pc_to_avr_t);
+enum state_t {
+    STATE_NONE,
+    STATE_FIXED_PWM
+};
 
 #endif

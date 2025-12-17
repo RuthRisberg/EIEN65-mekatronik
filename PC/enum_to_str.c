@@ -1,4 +1,4 @@
-#include "shared_enums.h"
+#include "enum_to_str.h"
 
 char* get_error_msg(enum error_msg_t error)
 {
