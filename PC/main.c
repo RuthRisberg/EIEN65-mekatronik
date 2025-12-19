@@ -14,6 +14,7 @@
 #include <assert.h>
 
 #include "shared_enums.h"
+#include "enum_to_str.h"
 
 #define MSG_LEN 3
 

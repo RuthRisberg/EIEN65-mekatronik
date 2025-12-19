@@ -3,6 +3,7 @@
 #include <util/delay.h>
 #include "serial.h"
 #include "leds.h"
+#include "sensors.h"
 
 #define BAUD 2400
 #define MYUBRR (F_CPU/16/BAUD-1)

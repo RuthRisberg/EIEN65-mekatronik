@@ -5,6 +5,6 @@ void init_sensors();
 void report_btn(int);
 void report_potentiometer();
 int read_button(int);
-int read_potentiometer();
+unsigned char read_potentiometer();
 
 #endif

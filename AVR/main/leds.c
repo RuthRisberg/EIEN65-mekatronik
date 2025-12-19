@@ -14,12 +14,12 @@ static int inited = 0;
 void init_leds()
 {
     inited = 1;
-    PORTD |= 1 << LED0;
-    PORTC |= 1 << LED1;
-    PORTC |= 1 << LED2;
-    PORTC |= 1 << LED3;
-    PORTB |= 1 << LED4;
-    PORTB |= 1 << LED5;
+    DDRD |= 1 << LED0;
+    DDRC |= 1 << LED1;
+    DDRC |= 1 << LED2;
+    DDRC |= 1 << LED3;
+    DDRB |= 1 << LED4;
+    DDRB |= 1 << LED5;
 	all_leds_off();
 }
 void all_leds_off()
