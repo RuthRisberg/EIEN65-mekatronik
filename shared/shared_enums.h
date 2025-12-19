@@ -7,7 +7,8 @@ enum error_msg_t {
     BUFFER_FULL,
     INCORRECT_PARITY,
     INVALID_STATE,
-	UNKNOWN_COMMAND
+	UNKNOWN_COMMAND,
+    BAD_ENCODER_INTERRUPT
 };
 enum msg_avr_to_pc_t {
 	INVALID_MSG_AVR,
@@ -18,10 +19,14 @@ enum msg_avr_to_pc_t {
 	RECEIVED_PARITY,
     BTN_STATUS,
     POTENTIOMETER_STATUS,
-    CURRENT_STATE
+    CURRENT_STATE,
+    SPEED,
+    AVG_TIME_H,
+    AVG_TIME_L
 };
 enum msg_pc_to_avr_t {
 	INVALID_MSG_PC,
+    ECHO,
     SET_STATE_NONE,
     GET_STATE,
     START_BLINK_LED,
@@ -36,7 +41,8 @@ enum msg_pc_to_avr_t {
     TURN_OFF_LED,
     SET_PWM1,
     SET_PWM2,
-    ECHO
+    GET_SPEED,
+    GET_AVG_TIME
 };
 enum state_t {
     STATE_NONE,

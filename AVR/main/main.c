@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include "leds.h"
 #include "serial.h"
+#include "motor.h"
 #include "sensors.h"
 
 #define LED0 PD2
@@ -20,6 +21,7 @@ void setup()
     init_serial();
     init_leds();
     init_sensors();
+    init_motor();
 
 	all_leds_on();
 	_delay_ms(2000);
@@ -104,6 +106,24 @@ void take_input()
         send(ECHO_REPLY, payload);
         break;
     
+    case SET_PWM1:
+        setpwm1(payload);
+        break;
+    
+    case SET_PWM2:
+        setpwm2(payload);
+        break;
+
+    case GET_SPEED:
+        send(SPEED, get_speed());
+        break;
+
+    case GET_AVG_TIME:
+        int16_t time = get_avg_time();
+        send(AVG_TIME_H, (unsigned char) (time>>8));
+        send(AVG_TIME_L, (unsigned char) (time & 0xff));
+        break;
+
     default:
 		error(UNKNOWN_COMMAND);
 		send(RECEIVED_HEADER, header);
@@ -116,6 +136,15 @@ ISR(USART_RX_vect)
 {
 	turn_on_led(3);
 	isr_receive_serial();
+}
+
+ISR(PCI0)
+{
+    encoder_interrupt(1);
+}
+ISR(PCI2)
+{
+    encoder_interrupt(0);
 }
 
 void continuous_tasks()

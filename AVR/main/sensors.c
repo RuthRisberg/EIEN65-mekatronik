@@ -8,13 +8,27 @@
 #define BTN1 PB6
 #define BTN2 PC1
 #define POT ((unsigned char) 3) // PC3 ADC3
+#define SPD0 PD7
+#define READSPD0 (PIND & (1 << SPD0))
+#define SPD1 PB0
+#define READSPD1 (PINB & (1 << SPD1))
+
+#define TRIGGERS_PER_ROTATION 24
+#define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
+#define SPEED_CALC_FACTOR (10 * CLOCK_CYCLES_PER_MINUTE / TRIGGERS_PER_ROTATION)
 
 static int inited = 0;
 
+// for speed calculations
+static uint16_t last_trigger = 0;
+static int16_t recent_times[10] = {0,0,0,0,0,0,0,0,0,0};
+static int16_t avg_time = 0;
+static int time_index = 0;
+static uint8_t last_trigger_source = 0;
+
 void init_sensors()
 {
-    inited = 1;
-
+    // buttons
     DDRD &= ~(1 << BTN0);
 	shadow_PORTD |= 1 << BTN0;
 	PORTD = shadow_PORTD;
@@ -25,9 +39,26 @@ void init_sensors()
 	shadow_PORTC |= 1 << BTN2;
 	PORTC = shadow_PORTC;
 
+    // potentiometer
     ADMUX |= (1 << ADLAR); // left adjust result (most significant 8 bits in ADCH)
     ADMUX |= POT; // set the correct pin to read from
     ADCSRA |= (1 << ADEN); // ADC enable
+
+    // digital encoder
+    // set pins to output with pull-up
+    DDRD &= ~(1 << SPD0);
+	shadow_PORTD |= 1 << SPD0;
+	PORTD = shadow_PORTD;
+    DDRB &= ~(1 << SPD1);
+	shadow_PORTB |= 1 << SPD1;
+	PORTB = shadow_PORTB;
+    // enable interrupts
+    PCICR |= (1 << PCIE2); // enable PCINT 23..16
+    PCMSK2 = (1 << PCINT23); // enable only PCINT23
+    PCICR |= (1 << PCIE0); // enable PCINT 7..0
+    PCMSK0 = (1 << PCINT0); // enable only PCINT0
+
+    inited = 1;
 }
 
 void report_btn(int btn)
@@ -79,4 +110,42 @@ unsigned char read_potentiometer()
     ADCSRA |= (1 << ADSC); // ADC start conversion
     while (ADCSRA & (1 << ADSC)); // wait for conversion to finish
     return ADCH;
+}
+
+void encoder_interrupt(int source)
+{
+    uint16_t time = TCNT1;
+    int16_t dt = time - last_trigger;
+    if (last_trigger_source == source)
+        error(BAD_ENCODER_INTERRUPT);
+    if (source == 0)
+    {
+        if (READSPD0 == READSPD1)
+            dt = -dt;
+    }
+    else
+    {
+        if (READSPD0 != READSPD1)
+            dt = -dt;
+    }
+
+    avg_time -= recent_times[time_index] * 0.1;
+    avg_time += dt * 0.1;
+
+    recent_times[time_index] = dt;
+    time_index++;
+    if (time_index == 10)
+        time_index = 0;
+    
+    last_trigger_source = source;
+}
+
+unsigned char get_speed()
+{
+    return SPEED_CALC_FACTOR / avg_time;
+}
+
+int16_t get_avg_time()
+{
+    return avg_time;
 }
