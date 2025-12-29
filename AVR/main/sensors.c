@@ -15,7 +15,8 @@
 
 #define TRIGGERS_PER_ROTATION 24
 #define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
-#define SPEED_CALC_FACTOR (10 * CLOCK_CYCLES_PER_MINUTE / TRIGGERS_PER_ROTATION)
+#define PRESCALING 8
+#define SPEED_CALC_FACTOR (10 * CLOCK_CYCLES_PER_MINUTE / PRESCALING / TRIGGERS_PER_ROTATION)
 
 static int inited = 0;
 
@@ -57,6 +58,9 @@ void init_sensors()
     PCMSK2 = (1 << PCINT23); // enable only PCINT23
     PCICR |= (1 << PCIE0); // enable PCINT 7..0
     PCMSK0 = (1 << PCINT0); // enable only PCINT0
+	// configure clock
+	//TCCR1B = (unsigned char) 1; // no prescaling
+	TCCR1B = (unsigned char) 2; // 8x prescaling
 
     inited = 1;
 }
@@ -114,23 +118,26 @@ unsigned char read_potentiometer()
 
 void encoder_interrupt(int source)
 {
+	if (!inited)
+		error(UNINITIALIZED);
     uint16_t time = TCNT1;
     int16_t dt = time - last_trigger;
+	last_trigger = time;
     if (last_trigger_source == source)
         error(BAD_ENCODER_INTERRUPT);
     if (source == 0)
     {
         if (READSPD0 == READSPD1)
-            dt = -dt;
+            send(ECHO_REPLY, 1);
     }
     else
     {
         if (READSPD0 != READSPD1)
-            dt = -dt;
+            send(ECHO_REPLY, 2);
     }
 
-    avg_time -= recent_times[time_index] * 0.1;
-    avg_time += dt * 0.1;
+    avg_time -= recent_times[time_index];
+    avg_time += dt;
 
     recent_times[time_index] = dt;
     time_index++;
@@ -142,7 +149,7 @@ void encoder_interrupt(int source)
 
 unsigned char get_speed()
 {
-    return SPEED_CALC_FACTOR / avg_time;
+    return SPEED_CALC_FACTOR / avg_time * 0.1;
 }
 
 int16_t get_avg_time()

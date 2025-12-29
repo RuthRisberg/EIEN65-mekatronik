@@ -87,11 +87,8 @@ void isr_receive_serial()
 		{
 			turn_on_led(5);
 			error(INCORRECT_PARITY);
-			_delay_ms(500);
 			send(RECEIVED_HEADER, received_header);
-			_delay_ms(500);
 			send(RECEIVED_DATA, received_payload);
-			_delay_ms(500);
 			send(RECEIVED_PARITY, parity);
 		}
 	}

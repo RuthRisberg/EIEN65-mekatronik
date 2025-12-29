@@ -10,6 +10,7 @@ void init_motor()
     setpwm2(0);
     TCCR0A |= (1 << WGM00); // phase correct pwm on motor pins (counter0), WGM01 and WGM02 left at 0
     TCCR0A |= (1 << COM0A1) | (1 << COM0B1); // clear pin on match when up-counting, set on match down-counting
+    TCCR0B = (unsigned char) 1; // no prescaling
     inited = 1;
 }
 

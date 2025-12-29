@@ -36,6 +36,8 @@ static int is_reporting_potentiometer = 0;
 void take_input()
 {
     unsigned char header, payload;
+	int16_t time;
+	
     if (!receive(&header, &payload))
         return;
 
@@ -119,7 +121,7 @@ void take_input()
         break;
 
     case GET_AVG_TIME:
-        int16_t time = get_avg_time();
+        time = get_avg_time();
         send(AVG_TIME_H, (unsigned char) (time>>8));
         send(AVG_TIME_L, (unsigned char) (time & 0xff));
         break;
@@ -138,12 +140,14 @@ ISR(USART_RX_vect)
 	isr_receive_serial();
 }
 
-ISR(PCI0)
+ISR(PCINT0_vect)
 {
+	turn_on_led(4);
     encoder_interrupt(1);
 }
-ISR(PCI2)
+ISR(PCINT2_vect)
 {
+	turn_on_led(5);
     encoder_interrupt(0);
 }
 
