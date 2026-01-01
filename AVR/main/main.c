@@ -145,7 +145,7 @@ ISR(PCINT0_vect)
 {
     encoder_interrupt(1);
 }
-ISR(PCI2_vect)
+ISR(PCINT2_vect)
 {
 	turn_on_led(5);
     encoder_interrupt(0);
