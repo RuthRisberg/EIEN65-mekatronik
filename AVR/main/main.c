@@ -10,6 +10,7 @@
 #define LED0 PD2
 #define NUM_LEDS 6
 #define NUM_BTNS 3
+#define MAIN_LOOP_RUN_INTERVAL 100000 // clock cycles, same as 0.1s
 
 state_t state = STATE_NONE;
 char shadow_PORTB = 0;
@@ -36,8 +37,8 @@ static int is_reporting_potentiometer = 0;
 void take_input()
 {
     unsigned char header, payload;
-	int16_t time;
-	
+    int16_t time;
+
     if (!receive(&header, &payload))
         return;
 
@@ -142,10 +143,9 @@ ISR(USART_RX_vect)
 
 ISR(PCINT0_vect)
 {
-	turn_on_led(4);
     encoder_interrupt(1);
 }
-ISR(PCINT2_vect)
+ISR(PCI2_vect)
 {
 	turn_on_led(5);
     encoder_interrupt(0);

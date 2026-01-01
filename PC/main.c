@@ -30,9 +30,9 @@ int read_thread_func(void* serial)
 		while (index != 3)
 		{
 			while (!read(*((int*)serial),&msg_from_avr[index],1)); // pretty sure this blocks until 3 bytes arrive
-				//thrd_sleep(&(struct timespec){.tv_sec=1}, NULL) // wait 1 second until trying again
+				thrd_sleep(&(struct timespec){.tv_nsec=100000000}, NULL); // wait 0.1 second until trying again
 			index++;
-			thrd_sleep(&(struct timespec){.tv_nsec=1000000}, NULL); // wait 1 ms
+			thrd_sleep(&(struct timespec){.tv_nsec=10000000}, NULL); // wait 10 ms
 		}
 
 		header = msg_from_avr[0];
@@ -59,7 +59,7 @@ int main(void)
 	int index = 0;
 	
 	/*Initialise serial port */
-	sp = serial_init("/dev/ttyS0",0);
+	sp = serial_init("/dev/ttyUSB0",0);
 	if(sp == 0)
 	{
 		printf("Error! Serial port could not be opened.\n");
@@ -71,7 +71,9 @@ int main(void)
 
 	// receive messages from serial (write to stdout)
     temp = thrd_create(&read_thread, read_thread_func, &sp);
-	assert(temp);
+	if (!(temp==thrd_success))
+		printf("%d\n", temp);
+	assert(temp == thrd_success);
 
 	// send messages to serial (read from stdin)
 	while (!stop)

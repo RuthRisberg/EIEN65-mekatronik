@@ -128,12 +128,12 @@ void encoder_interrupt(int source)
     if (source == 0)
     {
         if (READSPD0 == READSPD1)
-            send(ECHO_REPLY, 1);
+            dt = -dt;
     }
     else
     {
         if (READSPD0 != READSPD1)
-            send(ECHO_REPLY, 2);
+            dt = -dt;
     }
 
     avg_time -= recent_times[time_index];
