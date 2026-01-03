@@ -34,6 +34,11 @@ char* get_avr_to_pc_header(enum msg_avr_to_pc_t header)
 		case AVG_TIME_L: return "AVG_TIME_L";
 		case WAKE_UP_TIME_H: return "WAKE_UP_TIME_H";
 		case WAKE_UP_TIME_L: return "WAKE_UP_TIME_L";
+		case INTERRUPT_TIME_H: return "INTERRUPT_TIME_H";
+		case INTERRUPT_TIME_L: return "INTERRUPT_TIME_L";
+		case WHICH_INTERRUPT: return "WHICH_INTERRUPT";
+		case GOOD_INTERRUPTS: return "GOOD_INTERRUPTS";
+		case BAD_INTERRUPTS: return "BAD_INTERRUPTS";
 		default: return "unknown header";
 	}
 }
@@ -60,6 +65,8 @@ char* get_pc_to_avr_header(enum msg_pc_to_avr_t header)
 		case SET_PWM2: return "SET_PWM2";
 		case GET_SPEED: return "GET_SPEED";
 		case GET_AVG_TIME: return "GET_AVG_TIME";
+		case GET_INTERRUPT_STATS: return "GET_INTERRUPT_STATS";
+		case GET_RECENT_TIMES: return "GET_RECENT_TIMES";
 		default: return "unknown header";
 	}
 }

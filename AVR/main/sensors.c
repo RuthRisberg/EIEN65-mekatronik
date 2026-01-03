@@ -3,27 +3,28 @@
 #include "sensors.h"
 #include "shared_enums.h"
 #include "serial.h"
+#include "leds.h"
 
 #define BTN0 PD4
 #define BTN1 PB6
 #define BTN2 PC1
 #define POT ((unsigned char) 3) // PC3 ADC3
 #define SPD0 PD7
-#define READSPD0 (PIND & (1 << SPD0))
+#define READSPD0 ((PIND & (1 << SPD0)) >> SPD0)
 #define SPD1 PB0
-#define READSPD1 (PINB & (1 << SPD1))
+#define READSPD1 ((PINB & (1 << SPD1)) >> SPD1)
 
 #define TRIGGERS_PER_ROTATION 24
 #define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
 //#define SPEED_CALC_FACTOR (10UL * CLOCK_CYCLES_PER_MINUTE / TIMER1_PRESCALING / TRIGGERS_PER_ROTATION / N_TIMES_SAVED)
 #define SPEED_CALC_FACTOR 39063 // rounded up from 39062.5
 
-#define N_TIMES_SAVED 16
+#define N_TIMES_SAVED 64
 #define MULT_AVG_FACTOR 14
 #define MULT_AVG_SHIFT 4
 #define ADD_AVG
 //#define MULT_AVG
-//#define KEEP_RECENT_TIMES
+#define KEEP_RECENT_TIMES
 
 static int inited = 0;
 
@@ -136,14 +137,39 @@ unsigned char read_potentiometer()
     return ADCH;
 }
 
+static uint8_t good_interrupts = 0;
+static uint8_t bad_interrupts = 0;
 void encoder_interrupt_0()
 {
     // not checking initialized because this will run *very* frequently when the motor is spinning fast
     uint16_t time = TCNT1;
-    int16_t dt = time - last_trigger;
+    // recent_times[time_index] = time;
+    // recent_times[time_index] = READSPD0 | READSPD1;
+    // time_index++;
+    // if (time_index == N_TIMES_SAVED)
+    //     time_index = 0;
+    // toggle_led(4);
+    // return;
+    uint16_t temp = time - last_trigger; // need this subtraction unsigned to handle overflow
+    int16_t dt = temp; // might flip sign later so needs to be signed
 	last_trigger = time;
+
     if (last_trigger_source == 0)
-        error(BAD_ENCODER_INTERRUPT);
+    {
+        // bad_interrupts++;
+        // turn_on_led(4);
+        // turn_off_led(5);
+    //     error(BAD_ENCODER_INTERRUPT);
+        return;
+    }
+    // else
+    // {
+    //     turn_on_led(5);
+    //     turn_off_led(4);
+    //     good_interrupts++;
+    // }
+    last_trigger_source = 0;
+
     if (READSPD0 == READSPD1)
         dt = -dt;
 
@@ -157,22 +183,48 @@ void encoder_interrupt_0()
 
 #ifdef KEEP_RECENT_TIMES
     recent_times[time_index] = dt;
+    // recent_times[time_index] = temp;
+    // recent_times[time_index] = (READSPD0>>6) | READSPD1;
+    // if (READSPD0 != READSPD1)
+    //     recent_times[time_index] += 10;
+    // recent_times[time_index] += 1000;
     time_index++;
     if (time_index == N_TIMES_SAVED)
         time_index = 0;
 #endif
-    
-    last_trigger_source = 0;
 }
 
 void encoder_interrupt_1()
 {
     // not checking initialized because this will run *very* frequently when the motor is spinning fast
     uint16_t time = TCNT1;
-    int16_t dt = time - last_trigger;
+    // recent_times[time_index] = time;
+    // recent_times[time_index] = READSPD0 | READSPD1;
+    // time_index++;
+    // if (time_index == N_TIMES_SAVED)
+    //     time_index = 0;
+    // toggle_led(5);
+    // return;
+    uint16_t temp = time - last_trigger; // need this subtraction unsigned to handle overflow
+    int16_t dt = temp; // might flip sign later so needs to be signed
 	last_trigger = time;
+
     if (last_trigger_source == 1)
-        error(BAD_ENCODER_INTERRUPT);
+    {
+        // bad_interrupts++;
+        // turn_on_led(4);
+        // turn_off_led(5);
+    //     error(BAD_ENCODER_INTERRUPT);
+        return;
+    }
+    // else
+    // {
+    //     turn_on_led(5);
+    //     turn_off_led(4);
+    //     good_interrupts++;
+    // }
+    last_trigger_source = 1;
+
     if (READSPD0 != READSPD1)
         dt = -dt;
 
@@ -186,12 +238,35 @@ void encoder_interrupt_1()
 
 #ifdef KEEP_RECENT_TIMES
     recent_times[time_index] = dt;
+    // recent_times[time_index] = temp;
+    // recent_times[time_index] = (READSPD0>>6) | READSPD1;
+    // if (READSPD0 != READSPD1)
+    //     recent_times[time_index] += 10;
+    // recent_times[time_index] += 1100;
     time_index++;
     if (time_index == N_TIMES_SAVED)
         time_index = 0;
 #endif
+}
 
-    last_trigger_source = 1;
+void report_recent_times()
+{
+#ifdef KEEP_RECENT_TIMES
+    for (int i = 0; i < N_TIMES_SAVED; i++)
+    {
+        // send(WHICH_INTERRUPT, i);
+        send(INTERRUPT_TIME_H, recent_times[i]>>8);
+        send(INTERRUPT_TIME_L, recent_times[i]);
+    }
+#endif
+}
+
+void report_interrupt_stats()
+{
+    send(GOOD_INTERRUPTS, good_interrupts);
+    send(BAD_INTERRUPTS, bad_interrupts);
+    good_interrupts = 0;
+    bad_interrupts = 0;
 }
 
 unsigned char get_speed()

@@ -127,33 +127,39 @@ void take_input()
         send(AVG_TIME_L, (unsigned char) (time & 0xff));
         break;
 
+    case GET_INTERRUPT_STATS:
+        report_interrupt_stats();
+        break;
+
+    case GET_RECENT_TIMES:
+        report_recent_times();
+        break;
+
     default:
 		error(UNKNOWN_COMMAND);
 		send(RECEIVED_HEADER, header);
-		turn_on_led(1);
         break;
     }
 }
 
 ISR(USART_RX_vect)
 {
-	turn_on_led(3);
+	turn_on_led(INTERRUPT_LED);
 	isr_receive_serial();
-    turn_off_led(3);
+    turn_off_led(INTERRUPT_LED);
 }
 
 ISR(PCINT0_vect)
 {
-	turn_on_led(3);
+	turn_on_led(INTERRUPT_LED);
     encoder_interrupt_1();
-    turn_off_led(3);
+    turn_off_led(INTERRUPT_LED);
 }
 ISR(PCINT2_vect)
 {
-	turn_on_led(3);
-	turn_on_led(5);
+	turn_on_led(INTERRUPT_LED);
     encoder_interrupt_0();
-    turn_off_led(3);
+    turn_off_led(INTERRUPT_LED);
 }
 
 void continuous_tasks()

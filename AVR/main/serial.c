@@ -35,6 +35,7 @@ void send(unsigned char header, unsigned char payload)
     send_byte(header);
     send_byte(payload);
     send_byte(header ^ payload); // parity
+	_delay_ms(1);
 }
 
 static unsigned char received_header = 0;
@@ -61,7 +62,6 @@ unsigned char receive_byte()
 void isr_receive_serial()
 {
 	unsigned char parity;
-	turn_on_led(4);
 	//unsigned char header = receive_byte();
 	//unsigned char data = receive_byte();
 	//unsigned char parity = receive_byte();
@@ -77,20 +77,15 @@ void isr_receive_serial()
 	}
 	else
 	{
-		turn_on_led(1);
 		received_header = receive_byte();
 		received_payload = receive_byte();
-		turn_off_led(1);
 		parity = receive_byte();
-		turn_on_led(5);
 		if ((received_header ^ received_payload) == parity) // parity correct
 		{
-			turn_on_led(1);
 			has_received = 1;
 		}
 		else
 		{
-			turn_on_led(2);
 			error(INCORRECT_PARITY);
 			send(RECEIVED_HEADER, received_header);
 			send(RECEIVED_DATA, received_payload);
@@ -101,5 +96,6 @@ void isr_receive_serial()
 
 void error(error_msg_t msg)
 {
+	turn_on_led(ERROR_LED);
     send(ERROR, msg);
 }

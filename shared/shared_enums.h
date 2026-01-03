@@ -25,7 +25,12 @@ enum msg_avr_to_pc_t {
     AVG_TIME_H,
     AVG_TIME_L,
     WAKE_UP_TIME_H,
-    WAKE_UP_TIME_L
+    WAKE_UP_TIME_L,
+    INTERRUPT_TIME_H,
+    INTERRUPT_TIME_L,
+    WHICH_INTERRUPT,
+    GOOD_INTERRUPTS,
+    BAD_INTERRUPTS
 };
 enum msg_pc_to_avr_t {
 	INVALID_MSG_PC,
@@ -45,7 +50,9 @@ enum msg_pc_to_avr_t {
     SET_PWM1,
     SET_PWM2,
     GET_SPEED,
-    GET_AVG_TIME
+    GET_AVG_TIME,
+    GET_INTERRUPT_STATS,
+    GET_RECENT_TIMES
 };
 enum state_t {
     STATE_NONE,

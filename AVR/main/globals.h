@@ -16,10 +16,15 @@
 // 24 interrupts per rotation
 // 120-2880 interrupts per minute
 // 2-48 interrupts per second
-// 2-500 milliseconds per interrupts
+// 2-500 milliseconds per interrupt
 // prescaling 64 <=> ~32 cycles per millisecond <=> at least ~64 cycles per interrupt seems good?
 // prescaling 64 means (64*2^16)/10^6 = ~4 seconds between each overflow
 #define TIMER1_PRESCALING 64
+
+#define BLINKING_LED 0
+#define INTERRUPT_LED 1
+#define ERROR_LED 2
+
 
 extern char shadow_PORTB;
 extern char shadow_PORTC;

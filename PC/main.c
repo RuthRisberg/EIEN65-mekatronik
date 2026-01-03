@@ -23,7 +23,7 @@ static volatile int stop = 0;
 int read_thread_func(void* serial)
 {
 	unsigned char msg_from_avr[MSG_LEN];
-	int header, data, checksum, index;
+	int header, data, checksum, index, high_part;
 	while (!stop)
 	{
 		index = 0;
@@ -44,7 +44,26 @@ int read_thread_func(void* serial)
 		else if (header == ERROR)
 			printf("\rReceived: (%d)ERROR (%d)%s\n", header, data, get_error_msg(data));
 		else
-			printf("\rReceived: (%d)%s %d\n", header, get_avr_to_pc_header(header), data);
+		{
+			char* h_str = get_avr_to_pc_header(header);
+			size_t h_len = strlen(h_str);
+			if (h_str[h_len-2] == '_' && h_str[h_len-1] == 'H')
+			{
+				// printf("\rReceived: %d\n", header);
+				high_part = data;
+			}
+			else if (h_str[h_len-2] == '_' && h_str[h_len-1] == 'L')
+			{
+				if ((high_part<<8)+data > 30000)
+					printf("\rReceived: (%d)%s %d\n", header, h_str, ((high_part<<8)+data)-65536);
+				else
+					printf("\rReceived: (%d)%s %d\n", header, h_str, (high_part<<8)+data);
+			}
+			else
+			{
+				printf("\rReceived: (%d)%s %d\n", header, h_str, data);
+			}
+		}
 	}
 	return 0;
 }
