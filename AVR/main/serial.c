@@ -6,7 +6,8 @@
 #include "sensors.h"
 
 #define BAUD 2400
-#define MYUBRR (F_CPU/16/BAUD-1)
+//#define MYUBRR (F_CPU/16/BAUD-1)
+#define MYUBRR 25
 
 static int inited = 0;
 
@@ -76,16 +77,20 @@ void isr_receive_serial()
 	}
 	else
 	{
+		turn_on_led(1);
 		received_header = receive_byte();
 		received_payload = receive_byte();
+		turn_off_led(1);
 		parity = receive_byte();
+		turn_on_led(5);
 		if ((received_header ^ received_payload) == parity) // parity correct
 		{
+			turn_on_led(1);
 			has_received = 1;
 		}
 		else
 		{
-			turn_on_led(5);
+			turn_on_led(2);
 			error(INCORRECT_PARITY);
 			send(RECEIVED_HEADER, received_header);
 			send(RECEIVED_DATA, received_payload);

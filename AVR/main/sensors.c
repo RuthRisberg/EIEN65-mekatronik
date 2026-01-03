@@ -1,7 +1,7 @@
+#include "globals.h"
 #include <avr/io.h>
 #include "sensors.h"
 #include "shared_enums.h"
-#include "globals.h"
 #include "serial.h"
 
 #define BTN0 PD4
@@ -15,14 +15,21 @@
 
 #define TRIGGERS_PER_ROTATION 24
 #define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
-#define PRESCALING 8
-#define SPEED_CALC_FACTOR (10 * CLOCK_CYCLES_PER_MINUTE / PRESCALING / TRIGGERS_PER_ROTATION)
+//#define SPEED_CALC_FACTOR (10UL * CLOCK_CYCLES_PER_MINUTE / TIMER1_PRESCALING / TRIGGERS_PER_ROTATION / N_TIMES_SAVED)
+#define SPEED_CALC_FACTOR 39063 // rounded up from 39062.5
+
+#define N_TIMES_SAVED 16
+#define MULT_AVG_FACTOR 14
+#define MULT_AVG_SHIFT 4
+#define ADD_AVG
+//#define MULT_AVG
+//#define KEEP_RECENT_TIMES
 
 static int inited = 0;
 
 // for speed calculations
 static uint16_t last_trigger = 0;
-static int16_t recent_times[10] = {0,0,0,0,0,0,0,0,0,0};
+static int16_t recent_times[N_TIMES_SAVED];
 static int16_t avg_time = 0;
 static int time_index = 0;
 static uint8_t last_trigger_source = 0;
@@ -59,9 +66,22 @@ void init_sensors()
     PCICR |= (1 << PCIE0); // enable PCINT 7..0
     PCMSK0 = (1 << PCINT0); // enable only PCINT0
 	// configure clock
-	//TCCR1B = (unsigned char) 1; // no prescaling
-	TCCR1B = (unsigned char) 2; // 8x prescaling
+    if (TIMER1_PRESCALING == 1)
+        TCCR1B = (unsigned char) 1;
+    else if (TIMER1_PRESCALING == 8)
+        TCCR1B = (unsigned char) 2;
+    else if (TIMER1_PRESCALING == 64)
+        TCCR1B = (unsigned char) 3;
+    else if (TIMER1_PRESCALING == 256)
+        TCCR1B = (unsigned char) 4;
+    else if (TIMER1_PRESCALING == 1024)
+        TCCR1B = (unsigned char) 5;
+    else
+        error(UNHANDLED_CASE);
 
+    for (int i = 0; i < N_TIMES_SAVED; i++)
+        recent_times[i] = 0;
+    
     inited = 1;
 }
 
@@ -116,40 +136,67 @@ unsigned char read_potentiometer()
     return ADCH;
 }
 
-void encoder_interrupt(int source)
+void encoder_interrupt_0()
 {
-	if (!inited)
-		error(UNINITIALIZED);
+    // not checking initialized because this will run *very* frequently when the motor is spinning fast
     uint16_t time = TCNT1;
     int16_t dt = time - last_trigger;
 	last_trigger = time;
-    if (last_trigger_source == source)
+    if (last_trigger_source == 0)
         error(BAD_ENCODER_INTERRUPT);
-    if (source == 0)
-    {
-        if (READSPD0 == READSPD1)
-            dt = -dt;
-    }
-    else
-    {
-        if (READSPD0 != READSPD1)
-            dt = -dt;
-    }
+    if (READSPD0 == READSPD1)
+        dt = -dt;
 
+#if defined(ADD_AVG)
     avg_time -= recent_times[time_index];
+#elif defined(MULT_AVG)
+    avg_time *= MULT_AVG_FACTOR;
+    avg_time >>= MULT_AVG_SHIFT;
+#endif
     avg_time += dt;
 
+#ifdef KEEP_RECENT_TIMES
     recent_times[time_index] = dt;
     time_index++;
-    if (time_index == 10)
+    if (time_index == N_TIMES_SAVED)
         time_index = 0;
+#endif
     
-    last_trigger_source = source;
+    last_trigger_source = 0;
+}
+
+void encoder_interrupt_1()
+{
+    // not checking initialized because this will run *very* frequently when the motor is spinning fast
+    uint16_t time = TCNT1;
+    int16_t dt = time - last_trigger;
+	last_trigger = time;
+    if (last_trigger_source == 1)
+        error(BAD_ENCODER_INTERRUPT);
+    if (READSPD0 != READSPD1)
+        dt = -dt;
+
+#if defined(ADD_AVG)
+    avg_time -= recent_times[time_index];
+#elif defined(MULT_AVG)
+    avg_time *= MULT_AVG_FACTOR;
+    avg_time >>= MULT_AVG_SHIFT;
+#endif
+    avg_time += dt;
+
+#ifdef KEEP_RECENT_TIMES
+    recent_times[time_index] = dt;
+    time_index++;
+    if (time_index == N_TIMES_SAVED)
+        time_index = 0;
+#endif
+
+    last_trigger_source = 1;
 }
 
 unsigned char get_speed()
 {
-    return SPEED_CALC_FACTOR / avg_time * 0.1;
+    return SPEED_CALC_FACTOR / avg_time;
 }
 
 int16_t get_avg_time()

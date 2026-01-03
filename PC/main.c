@@ -30,9 +30,9 @@ int read_thread_func(void* serial)
 		while (index != 3)
 		{
 			while (!read(*((int*)serial),&msg_from_avr[index],1)); // pretty sure this blocks until 3 bytes arrive
-				thrd_sleep(&(struct timespec){.tv_nsec=100000000}, NULL); // wait 0.1 second until trying again
+				//thrd_sleep(&(struct timespec){.tv_nsec=100000000}, NULL); // wait 0.1 second until trying again
 			index++;
-			thrd_sleep(&(struct timespec){.tv_nsec=10000000}, NULL); // wait 10 ms
+			//thrd_sleep(&(struct timespec){.tv_nsec=1000000}, NULL); // wait 1 ms
 		}
 
 		header = msg_from_avr[0];

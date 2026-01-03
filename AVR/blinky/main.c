@@ -1,4 +1,5 @@
-#include <avr/io.h >
+#define F_CPU 1000000
+#include <avr/io.h>
 #include <util/delay.h>
 
 #define LED0 PD2

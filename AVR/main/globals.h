@@ -3,9 +3,23 @@
 
 #include "shared_enums.h"
 
-#ifndef F_CPU
+// check that F_CPU is correct
+#ifdef F_CPU
+#if(F_CPU != 1000000UL)
+#error
+#endif
+#else
 #define F_CPU 1000000UL
 #endif
+
+// 5-120 rpm
+// 24 interrupts per rotation
+// 120-2880 interrupts per minute
+// 2-48 interrupts per second
+// 2-500 milliseconds per interrupts
+// prescaling 64 <=> ~32 cycles per millisecond <=> at least ~64 cycles per interrupt seems good?
+// prescaling 64 means (64*2^16)/10^6 = ~4 seconds between each overflow
+#define TIMER1_PRESCALING 64
 
 extern char shadow_PORTB;
 extern char shadow_PORTC;

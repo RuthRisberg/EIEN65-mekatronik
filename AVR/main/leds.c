@@ -1,6 +1,6 @@
+#include "globals.h"
 #include <avr/io.h>
 #include "leds.h"
-#include "globals.h"
 
 #define LED0 PD2
 #define LED1 PC5

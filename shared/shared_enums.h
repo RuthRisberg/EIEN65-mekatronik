@@ -8,7 +8,8 @@ enum error_msg_t {
     INCORRECT_PARITY,
     INVALID_STATE,
 	UNKNOWN_COMMAND,
-    BAD_ENCODER_INTERRUPT
+    BAD_ENCODER_INTERRUPT,
+    UNHANDLED_CASE
 };
 enum msg_avr_to_pc_t {
 	INVALID_MSG_AVR,
@@ -22,7 +23,9 @@ enum msg_avr_to_pc_t {
     CURRENT_STATE,
     SPEED,
     AVG_TIME_H,
-    AVG_TIME_L
+    AVG_TIME_L,
+    WAKE_UP_TIME_H,
+    WAKE_UP_TIME_L
 };
 enum msg_pc_to_avr_t {
 	INVALID_MSG_PC,
@@ -46,7 +49,9 @@ enum msg_pc_to_avr_t {
 };
 enum state_t {
     STATE_NONE,
-    STATE_FIXED_PWM
+    STATE_FIXED_PWM,
+    STATE_SPEED_CONTROL,
+    STATE_POSITION_CONTROL
 };
 
 #endif

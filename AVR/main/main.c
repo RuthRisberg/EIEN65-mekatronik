@@ -31,7 +31,7 @@ void setup()
     sei();
 }
 
-static int is_blinking[NUM_LEDS];
+static int is_blinking[NUM_LEDS] = {1,0,0,0,0,0};
 static int is_reporting_btns[NUM_BTNS];
 static int is_reporting_potentiometer = 0;
 void take_input()
@@ -139,16 +139,21 @@ ISR(USART_RX_vect)
 {
 	turn_on_led(3);
 	isr_receive_serial();
+    turn_off_led(3);
 }
 
 ISR(PCINT0_vect)
 {
-    encoder_interrupt(1);
+	turn_on_led(3);
+    encoder_interrupt_1();
+    turn_off_led(3);
 }
 ISR(PCINT2_vect)
 {
+	turn_on_led(3);
 	turn_on_led(5);
-    encoder_interrupt(0);
+    encoder_interrupt_0();
+    turn_off_led(3);
 }
 
 void continuous_tasks()
@@ -168,6 +173,8 @@ void continuous_tasks()
 int main ()
 {
     setup();
+    uint16_t wakeup_time = TCNT1;
+    // uint16_t temp;
     while (1)
     {
         take_input();
@@ -181,7 +188,11 @@ int main ()
             error(INVALID_STATE);
             break;
         }
-		_delay_ms(1000);
+        wakeup_time += 7812; // 0.5s
+		while(wakeup_time-TCNT1 < 8000); // delay
+        // temp = TCNT1;
+        // send(WAKE_UP_TIME_H, temp>>8);
+        // send(WAKE_UP_TIME_L, temp);
     }
 
 }

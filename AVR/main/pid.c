@@ -1,7 +1,7 @@
+#include "globals.h"
 #include <avr/io.h>
 #include "pid.h"
 #include "sensors.h"
-#include "globals.h"
 #include "motor.h"
 
 #define SPEED_KP_SR 4

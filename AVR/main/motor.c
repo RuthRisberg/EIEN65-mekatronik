@@ -1,6 +1,6 @@
+#include "globals.h"
 #include <avr/io.h>
 #include "motor.h"
-#include "globals.h"
 
 static int inited = 0;
 

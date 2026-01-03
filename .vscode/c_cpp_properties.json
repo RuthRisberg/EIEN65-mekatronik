@@ -1,0 +1,42 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        },
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/home/ruth/Documents/kurser/EIEN65_mekatronik/EIEN65-mekatronik/shared",
+                "/home/ruth/Documents/kurser/EIEN65_mekatronik/EIEN65-mekatronik/AVR/main",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/ruth/Documents/kurser/EIEN65_mekatronik/EIEN65-mekatronik/shared",
+                    "/home/ruth/Documents/kurser/EIEN65_mekatronik/EIEN65-mekatronik/AVR/main",
+                    ""
+                ]
+            },
+            "defines": [
+                "F_CPU=1000000L",
+                "PLATFORMIO=60118",
+                "__AVR_ATmega88__"
+            ],
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "compilerPath": "/home/ruth/.platformio/packages/toolchain-atmelavr/bin/avr-gcc",
+            "compilerArgs": [
+                "-mmcu=atmega88",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
