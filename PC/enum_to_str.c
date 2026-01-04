@@ -12,6 +12,7 @@ char* get_error_msg(enum error_msg_t error)
 		case UNKNOWN_COMMAND: return "UNKNOWN_COMMAND";
 		case BAD_ENCODER_INTERRUPT: return "BAD_ENCODER_INTERRUPT";
 		case UNHANDLED_CASE: return "UNHANDLED_CASE";
+		case OVERFLOW: return "OVERFLOW";
 		default: return "unknown error message";
 	}
 }
@@ -29,7 +30,8 @@ char* get_avr_to_pc_header(enum msg_avr_to_pc_t header)
 		case BTN_STATUS: return "BTN_STATUS";
 		case POTENTIOMETER_STATUS: return "POTENTIOMETER_STATUS";
 		case CURRENT_STATE: return "CURRENT_STATE";
-		case SPEED: return "SPEED";
+		case SPEED_H: return "SPEED_H";
+		case SPEED_L: return "SPEED_L";
 		case AVG_TIME_H: return "AVG_TIME_H";
 		case AVG_TIME_L: return "AVG_TIME_L";
 		case WAKE_UP_TIME_H: return "WAKE_UP_TIME_H";

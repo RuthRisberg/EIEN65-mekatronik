@@ -9,7 +9,8 @@ enum error_msg_t {
     INVALID_STATE,
 	UNKNOWN_COMMAND,
     BAD_ENCODER_INTERRUPT,
-    UNHANDLED_CASE
+    UNHANDLED_CASE,
+    OVERFLOW
 };
 enum msg_avr_to_pc_t {
 	INVALID_MSG_AVR,
@@ -21,7 +22,8 @@ enum msg_avr_to_pc_t {
     BTN_STATUS,
     POTENTIOMETER_STATUS,
     CURRENT_STATE,
-    SPEED,
+    SPEED_H,
+    SPEED_L,
     AVG_TIME_H,
     AVG_TIME_L,
     WAKE_UP_TIME_H,

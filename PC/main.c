@@ -23,7 +23,7 @@ static volatile int stop = 0;
 int read_thread_func(void* serial)
 {
 	unsigned char msg_from_avr[MSG_LEN];
-	int header, data, checksum, index, high_part;
+	int header, data, checksum, high_part;
 	while (!stop)
 	{
 		read(*((int*)serial),&msg_from_avr[0],MSG_LEN); // blocks until a full message is received

@@ -35,7 +35,7 @@ void send(unsigned char header, unsigned char payload)
     send_byte(header);
     send_byte(payload);
     send_byte(header ^ payload); // parity
-	_delay_ms(1);
+	_delay_ms(50);
 }
 
 static unsigned char received_header = 0;

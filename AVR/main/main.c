@@ -10,7 +10,7 @@
 #define LED0 PD2
 #define NUM_LEDS 6
 #define NUM_BTNS 3
-#define MAIN_LOOP_RUN_INTERVAL 100000 // clock cycles, same as 0.1s
+#define MAIN_LOOP_RUN_INTERVAL 1000000 // clock cycles, same as 1s
 
 state_t state = STATE_NONE;
 char shadow_PORTB = 0;
@@ -37,7 +37,7 @@ static int is_reporting_potentiometer = 0;
 void take_input()
 {
     unsigned char header, payload;
-    int16_t time;
+    int16_t time, speed;
 
     if (!receive(&header, &payload))
         return;
@@ -118,7 +118,9 @@ void take_input()
         break;
 
     case GET_SPEED:
-        send(SPEED, get_speed());
+        speed = get_speed();
+        send(SPEED_H, speed>>8);
+        send(SPEED_L, speed);
         break;
 
     case GET_AVG_TIME:
@@ -180,7 +182,6 @@ int main ()
 {
     setup();
     uint16_t wakeup_time = TCNT1;
-    // uint16_t temp;
     while (1)
     {
         take_input();
@@ -194,11 +195,11 @@ int main ()
             error(INVALID_STATE);
             break;
         }
-        wakeup_time += 7812; // 0.5s
-		while(wakeup_time-TCNT1 < 8000); // delay
-        // temp = TCNT1;
-        // send(WAKE_UP_TIME_H, temp>>8);
-        // send(WAKE_UP_TIME_L, temp);
+        wakeup_time += (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING); // division should be pre-calculated at compile time
+		while(wakeup_time-TCNT1 < (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000); // delay
+#if ((MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000 >= 65536)
+#error
+#endif
     }
 
 }

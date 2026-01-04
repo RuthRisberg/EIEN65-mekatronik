@@ -14,16 +14,18 @@
 #define SPD1 PB0
 #define READSPD1 ((PINB & (1 << SPD1)) >> SPD1)
 
-#define TRIGGERS_PER_ROTATION 24
-#define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
-//#define SPEED_CALC_FACTOR (10UL * CLOCK_CYCLES_PER_MINUTE / TIMER1_PRESCALING / TRIGGERS_PER_ROTATION / N_TIMES_SAVED)
-#define SPEED_CALC_FACTOR 39063 // rounded up from 39062.5
-
-#define N_TIMES_SAVED 64
-#define MULT_AVG_FACTOR 14
+// 1/N_TIMES_SAVED = 1-(MULT_AVG_FACTOR/(2^MULT_AVG_SHIFT)) should be true when doing mult avg
+#define N_TIMES_SAVED 16
+#define MULT_AVG_FACTOR 15
 #define MULT_AVG_SHIFT 4
 #define ADD_AVG
 //#define MULT_AVG
+
+// #define TRIGGERS_PER_ROTATION 24
+// #define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
+// #define SPEED_CALC_FACTOR (CLOCK_CYCLES_PER_MINUTE * N_TIMES_SAVED / TIMER1_PRESCALING / TRIGGERS_PER_ROTATION)
+#define SPEED_CALC_FACTOR ((int32_t) 625000) // 10**6 * 60 * 64 / 256 / 24
+
 #define KEEP_RECENT_TIMES
 
 static int inited = 0;
@@ -31,7 +33,7 @@ static int inited = 0;
 // for speed calculations
 static uint16_t last_trigger = 0;
 static int16_t recent_times[N_TIMES_SAVED];
-static int16_t avg_time = 0;
+static int32_t avg_time = 0; // 16 bit is nearly too small for 5rpm, prescaling=256, N_TIMES_SAVED>4
 static int time_index = 0;
 static uint8_t last_trigger_source = 0;
 
@@ -180,6 +182,8 @@ void encoder_interrupt_0()
     avg_time >>= MULT_AVG_SHIFT;
 #endif
     avg_time += dt;
+    if (avg_time < -100000000 || avg_time > 100000000)
+        error(OVERFLOW);
 
 #ifdef KEEP_RECENT_TIMES
     recent_times[time_index] = dt;
@@ -235,6 +239,8 @@ void encoder_interrupt_1()
     avg_time >>= MULT_AVG_SHIFT;
 #endif
     avg_time += dt;
+    if (avg_time < -100000000 || avg_time > 100000000)
+        error(OVERFLOW);
 
 #ifdef KEEP_RECENT_TIMES
     recent_times[time_index] = dt;
@@ -269,12 +275,12 @@ void report_interrupt_stats()
     bad_interrupts = 0;
 }
 
-unsigned char get_speed()
+int16_t get_speed()
 {
     return SPEED_CALC_FACTOR / avg_time;
 }
 
 int16_t get_avg_time()
 {
-    return avg_time;
+    return avg_time / N_TIMES_SAVED;
 }

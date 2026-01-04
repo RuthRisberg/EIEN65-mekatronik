@@ -1,8 +1,6 @@
 #ifndef eien65_globals_h
 #define eien65_globals_h
 
-#include "shared_enums.h"
-
 // check that F_CPU is correct
 #ifdef F_CPU
 #if(F_CPU != 1000000UL)
@@ -12,14 +10,18 @@
 #define F_CPU 1000000UL
 #endif
 
+#include "shared_enums.h"
+
 // 5-120 rpm
 // 24 interrupts per rotation
 // 120-2880 interrupts per minute
 // 2-48 interrupts per second
-// 2-500 milliseconds per interrupt
-// prescaling 64 <=> ~32 cycles per millisecond <=> at least ~64 cycles per interrupt seems good?
-// prescaling 64 means (64*2^16)/10^6 = ~4 seconds between each overflow
-#define TIMER1_PRESCALING 64
+// 20-500 milliseconds per interrupt
+// prescaling 256 <=> ~4 slowcycles per millisecond <=> at least ~78 slowcycles per interrupt seems good
+// prescaling 256 means (256*2^16)/10^6 = ~16 seconds between each overflow
+// up to 5*10^5/256 = ~1950 slow cycles per interrupt
+// means avg can store the sum of at most 2^15/1950 >~ 16 interrupts => use bigger variable for avg to be safe
+#define TIMER1_PRESCALING 256
 
 #define BLINKING_LED 0
 #define INTERRUPT_LED 1
