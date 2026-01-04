@@ -22,7 +22,7 @@ static int fd;
 static struct termios oldtio, newtio;
 static char *device;
 
-int serial_init(char *modemdevice, int canonical)
+int serial_init(char *modemdevice, int canonical, int message_length)
 {
     /*
      * Open modem device for reading and writing and not as controlling tty
@@ -63,6 +63,8 @@ int serial_init(char *modemdevice, int canonical)
     newtio.c_cflag &= ~CSTOPB;
     newtio.c_cflag &= ~CRTSCTS; // CRTSCTS only seems to exist on my linux laptop if __USE_MISC is defined?
     newtio.c_cflag |= CS8 | CLOCAL | CREAD;
+    newtio.c_cc[VTIME] = 1;
+    newtio.c_cc[VMIN] = message_length;
 
     /*This part has been commented to make it work with the AVR*/
     /*

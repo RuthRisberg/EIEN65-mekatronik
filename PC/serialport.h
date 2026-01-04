@@ -5,7 +5,7 @@
  * Open serial port. Open in canonical mode if canonical is non-zero
  * Returns file descriptor
  */
-int serial_init(char *modemdevice, int canonical);
+int serial_init(char *modemdevice, int canonical, int message_length);
 
 /* 
  * restore the old port settings 

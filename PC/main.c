@@ -26,14 +26,7 @@ int read_thread_func(void* serial)
 	int header, data, checksum, index, high_part;
 	while (!stop)
 	{
-		index = 0;
-		while (index != 3)
-		{
-			while (!read(*((int*)serial),&msg_from_avr[index],1)); // pretty sure this blocks until 3 bytes arrive
-				//thrd_sleep(&(struct timespec){.tv_nsec=100000000}, NULL); // wait 0.1 second until trying again
-			index++;
-			//thrd_sleep(&(struct timespec){.tv_nsec=1000000}, NULL); // wait 1 ms
-		}
+		read(*((int*)serial),&msg_from_avr[0],MSG_LEN); // blocks until a full message is received
 
 		header = msg_from_avr[0];
 		data = msg_from_avr[1];
@@ -78,7 +71,7 @@ int main(void)
 	int index = 0;
 	
 	/*Initialise serial port */
-	sp = serial_init("/dev/ttyUSB0",0);
+	sp = serial_init("/dev/ttyUSB0", 0, MSG_LEN);
 	if(sp == 0)
 	{
 		printf("Error! Serial port could not be opened.\n");
