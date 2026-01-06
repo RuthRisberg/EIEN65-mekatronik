@@ -56,7 +56,7 @@ void init_sensors()
     ADCSRA |= (1 << ADEN); // ADC enable
 
     // digital encoder
-    // set pins to output with pull-up
+    // set pins to input with pull-up
     DDRD &= ~(1 << SPD0);
 	shadow_PORTD |= 1 << SPD0;
 	PORTD = shadow_PORTD;
