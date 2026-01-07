@@ -9,7 +9,7 @@
 #define LED4 PB2
 #define LED5 PB1
 
-static int inited = 0;
+static int8_t inited = 0;
 
 void init_leds()
 {
@@ -33,14 +33,14 @@ void all_leds_on()
 {
     if (!inited)
         error(UNINITIALIZED);
-    for (int i = 0; i < 6; i++)
+    for (uint8_t i = 0; i < 6; i++)
         turn_on_led(i);
 }
-void turn_on_led(int led)
+void turn_on_led(uint8_t led)
 {
     if (!inited)
         error(UNINITIALIZED);
-    if (led < 0 || led > 5)
+    if (led > 5)
     {
         error(INDEX_OUT_OF_BOUNDS);
         return;
@@ -69,11 +69,11 @@ void turn_on_led(int led)
         PORTB = shadow_PORTB;
     }
 }
-void turn_off_led(int led)
+void turn_off_led(uint8_t led)
 {
     if (!inited)
         error(UNINITIALIZED);
-    if (led < 0 || led > 5)
+    if (led > 5)
     {
         error(INDEX_OUT_OF_BOUNDS);
         return;
@@ -102,11 +102,11 @@ void turn_off_led(int led)
         PORTB = shadow_PORTB;
     }
 }
-void toggle_led(int led)
+void toggle_led(uint8_t led)
 {
     if (!inited)
         error(UNINITIALIZED);
-    if (led < 0 || led > 5)
+    if (led > 5)
     {
         error(INDEX_OUT_OF_BOUNDS);
         return;

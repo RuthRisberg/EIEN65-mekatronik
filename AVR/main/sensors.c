@@ -8,14 +8,14 @@
 #define BTN0 PD4
 #define BTN1 PB6
 #define BTN2 PC1
-#define POT ((unsigned char) 3) // PC3 ADC3
+#define POT ((uint8_t) 3) // PC3 ADC3
 #define SPD0 PD7
 #define READSPD0 ((PIND & (1 << SPD0)) >> SPD0)
 #define SPD1 PB0
 #define READSPD1 ((PINB & (1 << SPD1)) >> SPD1)
 
 // 1/N_TIMES_SAVED = 1-(MULT_AVG_FACTOR/(2^MULT_AVG_SHIFT)) should be true when doing mult avg
-#define N_TIMES_SAVED 16
+#define N_TIMES_SAVED 16 // at most 256, index is saved in uint8_t
 #define MULT_AVG_FACTOR 15
 #define MULT_AVG_SHIFT 4
 #define ADD_AVG
@@ -34,7 +34,7 @@ static int inited = 0;
 static uint16_t last_trigger = 0;
 static int16_t recent_times[N_TIMES_SAVED];
 static int32_t avg_time = 0; // 16 bit is nearly too small for 5rpm, prescaling=256, N_TIMES_SAVED>4
-static int time_index = 0;
+static uint8_t time_index = 0;
 static uint8_t last_trigger_source = 0;
 
 void init_sensors()
@@ -70,15 +70,15 @@ void init_sensors()
     PCMSK0 = (1 << PCINT0); // enable only PCINT0
 	// configure clock
     if (TIMER1_PRESCALING == 1)
-        TCCR1B = (unsigned char) 1;
+        TCCR1B = 1;
     else if (TIMER1_PRESCALING == 8)
-        TCCR1B = (unsigned char) 2;
+        TCCR1B = 2;
     else if (TIMER1_PRESCALING == 64)
-        TCCR1B = (unsigned char) 3;
+        TCCR1B = 3;
     else if (TIMER1_PRESCALING == 256)
-        TCCR1B = (unsigned char) 4;
+        TCCR1B = 4;
     else if (TIMER1_PRESCALING == 1024)
-        TCCR1B = (unsigned char) 5;
+        TCCR1B = 5;
     else
         error(UNHANDLED_CASE);
 
@@ -88,9 +88,9 @@ void init_sensors()
     inited = 1;
 }
 
-void report_btn(int btn)
+void report_btn(uint8_t btn)
 {
-    send(BTN_STATUS, (((unsigned char)btn)<<4) | read_button(btn));
+    send(BTN_STATUS, btn*10 + read_button(btn)); // *10 instead of a left shift to be human readable
 }
 
 void report_potentiometer()
@@ -98,7 +98,7 @@ void report_potentiometer()
     send(POTENTIOMETER_STATUS, read_potentiometer());
 }
 
-int read_button(int btn)
+uint8_t read_button(uint8_t btn)
 {
 	if (!inited)
 		error(UNINITIALIZED);
@@ -130,7 +130,7 @@ int read_button(int btn)
     }
 }
 
-unsigned char read_potentiometer()
+uint8_t read_potentiometer()
 {
 	if (!inited)
 		error(UNINITIALIZED);

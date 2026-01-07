@@ -13,9 +13,9 @@
 #define MAIN_LOOP_RUN_INTERVAL 1000000 // clock cycles, same as 1s
 
 state_t state = STATE_NONE;
-char shadow_PORTB = 0;
-char shadow_PORTC = 0;
-char shadow_PORTD = 0;
+uint8_t shadow_PORTB = 0;
+uint8_t shadow_PORTC = 0;
+uint8_t shadow_PORTD = 0;
 
 void setup()
 {
@@ -31,12 +31,12 @@ void setup()
     sei();
 }
 
-static int is_blinking[NUM_LEDS] = {1,0,0,0,0,0};
-static int is_reporting_btns[NUM_BTNS];
-static int is_reporting_potentiometer = 0;
+static uint8_t is_blinking[NUM_LEDS] = {1,0,0,0,0,0};
+static uint8_t is_reporting_btns[NUM_BTNS];
+static uint8_t is_reporting_potentiometer = 0;
 void take_input()
 {
-    unsigned char header, payload;
+    uint8_t header, payload;
     int16_t time, speed;
 
     if (!receive(&header, &payload))
@@ -166,11 +166,11 @@ ISR(PCINT2_vect)
 
 void continuous_tasks()
 {
-    for (int i = 0; i < NUM_LEDS; i++)
+    for (uint8_t i = 0; i < NUM_LEDS; i++)
         if (is_blinking[i])
             toggle_led(i);
     
-    for (int i = 0; i < NUM_BTNS; i++)
+    for (uint8_t i = 0; i < NUM_BTNS; i++)
         if (is_reporting_btns[i])
             report_btn(i);
     

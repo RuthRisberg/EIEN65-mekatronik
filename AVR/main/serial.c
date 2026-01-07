@@ -9,18 +9,17 @@
 //#define MYUBRR (F_CPU/16/BAUD-1)
 #define MYUBRR 25
 
-static int inited = 0;
+static uint8_t inited = 0;
 
 void init_serial()
 {
-    UBRR0H = (unsigned char)(MYUBRR >> 8);
-    UBRR0L = (unsigned char)MYUBRR;
+	UBRR0 = MYUBRR;
     UCSR0B |= (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);
     // UCSR0C =// async, no parity, 1 stop bit, 8 bit data by default
     inited = 1;
 }
 
-void send_byte(unsigned char data)
+void send_byte(uint8_t data)
 {
     /* Wait for empty transmit buffer */
     while ( !( UCSR0A & (1<<UDRE0)) );
@@ -28,7 +27,7 @@ void send_byte(unsigned char data)
     UDR0 = data;
 }
 
-void send(unsigned char header, unsigned char payload)
+void send(uint8_t header, uint8_t payload)
 {
     if (!inited)
         error(UNINITIALIZED);
@@ -38,10 +37,10 @@ void send(unsigned char header, unsigned char payload)
 	_delay_ms(50);
 }
 
-static unsigned char received_header = 0;
-static unsigned char received_payload = 0;
+static uint8_t received_header = 0;
+static uint8_t received_payload = 0;
 static int has_received = 0;
-int receive(unsigned char* header, unsigned char* payload) // returns 1 if message received
+uint8_t receive(uint8_t* header, uint8_t* payload) // returns 1 if message received
 {
     if (has_received)
     {
@@ -54,17 +53,17 @@ int receive(unsigned char* header, unsigned char* payload) // returns 1 if messa
         return 0;
 }
 
-unsigned char receive_byte()
+uint8_t receive_byte()
 {
     while(!(UCSR0A & (1 << RXC0)));
     return UDR0;
 }
 void isr_receive_serial()
 {
-	unsigned char parity;
-	//unsigned char header = receive_byte();
-	//unsigned char data = receive_byte();
-	//unsigned char parity = receive_byte();
+	uint8_t parity;
+	//uint8_t header = receive_byte();
+	//uint8_t data = receive_byte();
+	//uint8_t parity = receive_byte();
 	//send_byte(header);
 	//send_byte(data);
 	//send_byte(parity);

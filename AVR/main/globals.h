@@ -10,6 +10,7 @@
 #define F_CPU 1000000UL
 #endif
 
+#include <avr/io.h>
 #include "shared_enums.h"
 
 // 5-120 rpm
@@ -28,9 +29,9 @@
 #define ERROR_LED 2
 
 
-extern char shadow_PORTB;
-extern char shadow_PORTC;
-extern char shadow_PORTD;
+extern uint8_t shadow_PORTB;
+extern uint8_t shadow_PORTC;
+extern uint8_t shadow_PORTD;
 
 typedef enum state_t state_t; 
 extern state_t state;

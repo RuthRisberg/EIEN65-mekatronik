@@ -4,8 +4,8 @@
 void init_leds();
 void all_leds_off();
 void all_leds_on();
-void turn_on_led(int);
-void turn_off_led(int);
-void toggle_led(int);
+void turn_on_led(uint8_t);
+void turn_off_led(uint8_t);
+void toggle_led(uint8_t);
 
 #endif
