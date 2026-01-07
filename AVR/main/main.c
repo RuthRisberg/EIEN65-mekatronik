@@ -6,6 +6,7 @@
 #include "serial.h"
 #include "motor.h"
 #include "sensors.h"
+#include "pid.h"
 
 #define LED0 PD2
 #define NUM_LEDS 6
@@ -31,6 +32,13 @@ void setup()
     sei();
 }
 
+void set_state_none()
+{
+    state = STATE_NONE;
+    setpwm1(0);
+    setpwm2(0);
+}
+
 static uint8_t is_blinking[NUM_LEDS] = {1,0,0,0,0,0};
 static uint8_t is_reporting_btns[NUM_BTNS];
 static uint8_t is_reporting_potentiometer = 0;
@@ -45,7 +53,7 @@ void take_input()
     switch (header)
     {
     case SET_STATE_NONE:
-        state = STATE_NONE;
+        set_state_none();
         break;
 
     case GET_STATE:
@@ -110,10 +118,12 @@ void take_input()
         break;
     
     case SET_PWM1:
+        state = STATE_FIXED_PWM;
         setpwm1(payload);
         break;
     
     case SET_PWM2:
+        state = STATE_FIXED_PWM;
         setpwm2(payload);
         break;
 
@@ -135,6 +145,19 @@ void take_input()
 
     case GET_RECENT_TIMES:
         report_recent_times();
+        break;
+
+    case SET_STATE_SPEED_CONTROL:
+        set_state_none();
+        state = STATE_SPEED_CONTROL;
+        break;
+
+    case SET_SPEED_KP:
+        set_speed_Kp(payload);
+        break;
+
+    case SET_SPEED_KI:
+        set_speed_Ki(payload);
         break;
 
     default:
@@ -176,6 +199,8 @@ void continuous_tasks()
     
     if (is_reporting_potentiometer)
         report_potentiometer();
+    
+    run_pid();
 }
 
 int main ()
@@ -186,15 +211,7 @@ int main ()
     {
         take_input();
         continuous_tasks();
-        switch (state)
-        {
-        case STATE_NONE:
-            break;
-        
-        default:
-            error(INVALID_STATE);
-            break;
-        }
+
         wakeup_time += (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING); // division should be pre-calculated at compile time
 		while(wakeup_time-TCNT1 < (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000); // delay
 #if ((MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000 >= 65536)

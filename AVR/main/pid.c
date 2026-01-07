@@ -3,6 +3,7 @@
 #include "pid.h"
 #include "sensors.h"
 #include "motor.h"
+#include <stdlib.h>
 
 #define SPEED_KP_SR 4
 #define SPEED_KI_SR 4
@@ -21,18 +22,26 @@ void set_target_position(uint8_t position)
 {
     target_pos = position;
 }
+void set_speed_Kp(uint8_t new_Kp)
+{
+    speed_Kp = new_Kp;
+}
+void set_speed_Ki(uint8_t new_Ki)
+{
+    speed_Ki = new_Ki;
+}
 
 void speed_control()
 {
-    uint8_t measured_speed = get_speed(); // 0-120
-    int16_t speed_diff = ((int8_t)target_speed) - ((int8_t)measured_speed); // 0-120, 0-120, -120-120
+    uint8_t measured_speed = abs(get_speed()); // 0-120 (or maybe slightly more)
+    int8_t speed_diff = ((int8_t)target_speed) - ((int8_t)measured_speed); // 0-120, 0-120, -120-120
 
-    // integrator, with out-of-bounds checks
-    speed_integrator += speed_diff * speed_Ki;
+    // integrator, will not overflow due to anti-windup
+    speed_integrator += ((int16_t)speed_diff) * ((int16_t)speed_Ki);
 
     // find output no overflow
-    int16_t pi_controller_out = (speed_integrator>>SPEED_KI_SR); // proportional part
-    pi_controller_out += ((((int16_t)target_speed) * ((int16_t)speed_Kp))>>SPEED_KP_SR); // integrated part
+    int16_t pi_controller_out = (speed_integrator>>SPEED_KI_SR); // integrated part
+    pi_controller_out += ((((int16_t)target_speed) * ((int16_t)speed_Kp))>>SPEED_KP_SR); // proportional part
 
     // anti-windup
     if (pi_controller_out < 0)

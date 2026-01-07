@@ -69,6 +69,9 @@ char* get_pc_to_avr_header(enum msg_pc_to_avr_t header)
 		case GET_AVG_TIME: return "GET_AVG_TIME";
 		case GET_INTERRUPT_STATS: return "GET_INTERRUPT_STATS";
 		case GET_RECENT_TIMES: return "GET_RECENT_TIMES";
+		case SET_STATE_SPEED_CONTROL: return "SET_STATE_SPEED_CONTROL";
+		case SET_SPEED_KP: return "SET_SPEED_KP";
+		case SET_SPEED_KI: return "SET_SPEED_KI";
 		default: return "unknown header";
 	}
 }

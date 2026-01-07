@@ -54,7 +54,10 @@ enum msg_pc_to_avr_t {
     GET_SPEED,
     GET_AVG_TIME,
     GET_INTERRUPT_STATS,
-    GET_RECENT_TIMES
+    GET_RECENT_TIMES,
+    SET_STATE_SPEED_CONTROL,
+    SET_SPEED_KP,
+    SET_SPEED_KI
 };
 enum state_t {
     STATE_NONE,
