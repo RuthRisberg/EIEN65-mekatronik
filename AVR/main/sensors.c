@@ -15,16 +15,16 @@
 #define READSPD1 ((PINB & (1 << SPD1)) >> SPD1)
 
 // 1/N_TIMES_SAVED = 1-(MULT_AVG_FACTOR/(2^MULT_AVG_SHIFT)) should be true when doing mult avg
-#define N_TIMES_SAVED 16 // at most 256, index is saved in uint8_t
+#define N_TIMES_SAVED 64 // at most 256, index is saved in uint8_t
 #define MULT_AVG_FACTOR 15
 #define MULT_AVG_SHIFT 4
 #define ADD_AVG
 //#define MULT_AVG
 
-// #define TRIGGERS_PER_ROTATION 24
+// #define TRIGGERS_PER_ROTATION 24*4 // 24 pulses, 4 triggers per pulse (?)
 // #define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
 // #define SPEED_CALC_FACTOR (CLOCK_CYCLES_PER_MINUTE * N_TIMES_SAVED / TIMER1_PRESCALING / TRIGGERS_PER_ROTATION)
-#define SPEED_CALC_FACTOR ((int32_t) 625000) // 10**6 * 60 * 64 / 256 / 24
+#define SPEED_CALC_FACTOR ((int32_t) 15625) //156250) // 10**6 * 60 * 64 / 256 / (24*4)
 
 #define KEEP_RECENT_TIMES
 

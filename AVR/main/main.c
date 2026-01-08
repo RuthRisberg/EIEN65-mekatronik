@@ -35,13 +35,14 @@ void setup()
 void set_state_none()
 {
     state = STATE_NONE;
-    setpwm1(0);
-    setpwm2(0);
+    setpwm0(255);
+    setpwm1(255);
 }
 
 static uint8_t is_blinking[NUM_LEDS] = {1,0,0,0,0,0};
 static uint8_t is_reporting_btns[NUM_BTNS];
 static uint8_t is_reporting_potentiometer = 0;
+static uint8_t is_reporting_speed = 0;
 void take_input()
 {
     uint8_t header, payload;
@@ -117,14 +118,14 @@ void take_input()
         send(ECHO_REPLY, payload);
         break;
     
+    case SET_PWM0:
+        state = STATE_FIXED_PWM;
+        setpwm0(payload);
+        break;
+    
     case SET_PWM1:
         state = STATE_FIXED_PWM;
         setpwm1(payload);
-        break;
-    
-    case SET_PWM2:
-        state = STATE_FIXED_PWM;
-        setpwm2(payload);
         break;
 
     case GET_SPEED:
@@ -147,9 +148,11 @@ void take_input()
         report_recent_times();
         break;
 
-    case SET_STATE_SPEED_CONTROL:
-        set_state_none();
+    case SET_SPEED:
+        if (state != STATE_SPEED_CONTROL)
+            set_state_none();
         state = STATE_SPEED_CONTROL;
+        set_target_speed(payload);
         break;
 
     case SET_SPEED_KP:
@@ -158,6 +161,18 @@ void take_input()
 
     case SET_SPEED_KI:
         set_speed_Ki(payload);
+        break;
+
+    case TOGGLE_REPORT_INTEGRATOR:
+        toggle_reporting_integrator();
+        break;
+
+    case TOGGLE_REPORT_PI_OUTPUT:
+        toggle_reporting_PI_output();
+        break;
+
+    case TOGGLE_REPORT_SPEED:
+        is_reporting_speed = 1-is_reporting_speed;
         break;
 
     default:
@@ -192,14 +207,21 @@ void continuous_tasks()
     for (uint8_t i = 0; i < NUM_LEDS; i++)
         if (is_blinking[i])
             toggle_led(i);
-    
+
     for (uint8_t i = 0; i < NUM_BTNS; i++)
         if (is_reporting_btns[i])
             report_btn(i);
-    
+
     if (is_reporting_potentiometer)
         report_potentiometer();
-    
+
+    if (is_reporting_speed)
+    {
+        int16_t speed = get_speed();
+        send(SPEED_H, speed>>8);
+        send(SPEED_L, speed);
+    }
+
     run_pid();
 }
 
@@ -213,7 +235,9 @@ int main ()
         continuous_tasks();
 
         wakeup_time += (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING); // division should be pre-calculated at compile time
-		while(wakeup_time-TCNT1 < (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000); // delay
+		turn_on_led(SLEEP_LED);
+        while(wakeup_time-TCNT1 < (MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000); // delay
+        turn_off_led(SLEEP_LED);
 #if ((MAIN_LOOP_RUN_INTERVAL/TIMER1_PRESCALING)+1000 >= 65536)
 #error
 #endif

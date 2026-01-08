@@ -41,6 +41,9 @@ char* get_avr_to_pc_header(enum msg_avr_to_pc_t header)
 		case WHICH_INTERRUPT: return "WHICH_INTERRUPT";
 		case GOOD_INTERRUPTS: return "GOOD_INTERRUPTS";
 		case BAD_INTERRUPTS: return "BAD_INTERRUPTS";
+		case INTEGRATOR_H: return "INTEGRATOR_H";
+		case INTEGRATOR_L: return "INTEGRATOR_L";
+		case PI_OUTPUT: return "PI_OUTPUT";
 		default: return "unknown header";
 	}
 }
@@ -63,15 +66,18 @@ char* get_pc_to_avr_header(enum msg_pc_to_avr_t header)
 		case READ_POTENTIOMETER: return "READ_POTENTIOMETER";
 		case TURN_ON_LED: return "TURN_ON_LED";
 		case TURN_OFF_LED: return "TURN_OFF_LED";
+		case SET_PWM0: return "SET_PWM0";
 		case SET_PWM1: return "SET_PWM1";
-		case SET_PWM2: return "SET_PWM2";
 		case GET_SPEED: return "GET_SPEED";
 		case GET_AVG_TIME: return "GET_AVG_TIME";
 		case GET_INTERRUPT_STATS: return "GET_INTERRUPT_STATS";
 		case GET_RECENT_TIMES: return "GET_RECENT_TIMES";
-		case SET_STATE_SPEED_CONTROL: return "SET_STATE_SPEED_CONTROL";
+		case SET_SPEED: return "SET_SPEED";
 		case SET_SPEED_KP: return "SET_SPEED_KP";
 		case SET_SPEED_KI: return "SET_SPEED_KI";
+		case TOGGLE_REPORT_INTEGRATOR: return "TOGGLE_REPORT_INTEGRATOR";
+		case TOGGLE_REPORT_PI_OUTPUT: return "TOGGLE_REPORT_PI_OUTPUT";
+		case TOGGLE_REPORT_SPEED: return "TOGGLE_REPORT_SPEED";
 		default: return "unknown header";
 	}
 }

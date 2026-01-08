@@ -34,7 +34,7 @@ void send(uint8_t header, uint8_t payload)
     send_byte(header);
     send_byte(payload);
     send_byte(header ^ payload); // parity
-	_delay_ms(50);
+	_delay_ms(20);
 }
 
 static uint8_t received_header = 0;

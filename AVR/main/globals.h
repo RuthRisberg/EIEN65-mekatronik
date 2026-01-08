@@ -27,6 +27,7 @@
 #define BLINKING_LED 0
 #define INTERRUPT_LED 1
 #define ERROR_LED 2
+#define SLEEP_LED 3
 
 
 extern uint8_t shadow_PORTB;

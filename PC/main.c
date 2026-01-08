@@ -108,7 +108,6 @@ int main(void)
 				buf[1] = data;
 				buf[2] = buf[0] ^ buf[1];
 				write(sp,buf,3);
-				printf("Enter new command: ");
 			}
 			else if (header == -1)
 			{

@@ -3,6 +3,7 @@
 #include "pid.h"
 #include "sensors.h"
 #include "motor.h"
+#include "serial.h"
 #include <stdlib.h>
 
 #define SPEED_KP_SR 4
@@ -13,6 +14,8 @@ static uint8_t target_pos = 0;
 static uint8_t speed_Kp = 16; // >>SPEED_KP_SR
 static uint8_t speed_Ki = 1; // >>SPEED_KI_SR
 static int16_t speed_integrator = 0; // -120*speed_Ki - 255+120*speed_Ki
+static uint8_t reporting_integrator = 0;
+static uint8_t reporting_output = 0;
 
 void set_target_speed(uint8_t speed)
 {
@@ -29,6 +32,14 @@ void set_speed_Kp(uint8_t new_Kp)
 void set_speed_Ki(uint8_t new_Ki)
 {
     speed_Ki = new_Ki;
+}
+void toggle_reporting_integrator()
+{
+    reporting_integrator = 1-reporting_integrator;
+}
+void toggle_reporting_PI_output()
+{
+    reporting_output = 1-reporting_output;
 }
 
 void speed_control()
@@ -54,9 +65,18 @@ void speed_control()
         speed_integrator -= (pi_controller_out-255)<<SPEED_KI_SR;
         pi_controller_out = 255;
     }
+    if (reporting_integrator)
+    {
+        send(INTEGRATOR_H, speed_integrator>>8);
+        send(INTEGRATOR_L, speed_integrator);
+    }
 
     // output
-    setpwm1((uint8_t)pi_controller_out);
+    if (reporting_output)
+    {
+        send(PI_OUTPUT, 255-pi_controller_out);
+    }
+    setpwm0(255-pi_controller_out);
 }
 
 void run_pid()
