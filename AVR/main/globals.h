@@ -28,6 +28,7 @@
 #define INTERRUPT_LED 1
 #define ERROR_LED 2
 #define SLEEP_LED 3
+#define MOTOR_MODE_BTN PC1
 
 
 extern uint8_t shadow_PORTB;

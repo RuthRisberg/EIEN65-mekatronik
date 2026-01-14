@@ -9,6 +9,7 @@
 #define BTN1 PB6
 #define BTN2 PC1
 #define POT ((uint8_t) 3) // PC3 ADC3
+#define POS ((uint8_t) 0) // PC0 ADC0
 #define SPD0 PD7
 #define READSPD0 ((PIND & (1 << SPD0)) >> SPD0)
 #define SPD1 PB0
@@ -50,9 +51,8 @@ void init_sensors()
 	shadow_PORTC |= 1 << BTN2;
 	PORTC = shadow_PORTC;
 
-    // potentiometer
+    // analog inputs (potentiometer and position)
     ADMUX |= (1 << ADLAR); // left adjust result (most significant 8 bits in ADCH)
-    ADMUX |= POT; // set the correct pin to read from
     ADCSRA |= (1 << ADEN); // ADC enable
 
     // digital encoder
@@ -134,6 +134,19 @@ uint8_t read_potentiometer()
 {
 	if (!inited)
 		error(UNINITIALIZED);
+    ADMUX &= 0xf0; // clear pin selection
+    ADMUX |= POT; // set the correct pin to read from
+    ADCSRA |= (1 << ADSC); // ADC start conversion
+    while (ADCSRA & (1 << ADSC)); // wait for conversion to finish
+    return ADCH;
+}
+
+uint8_t read_position()
+{
+	if (!inited)
+		error(UNINITIALIZED);
+    ADMUX &= 0xf0; // clear pin selection
+    ADMUX |= POS; // set the correct pin to read from
     ADCSRA |= (1 << ADSC); // ADC start conversion
     while (ADCSRA & (1 << ADSC)); // wait for conversion to finish
     return ADCH;

@@ -78,6 +78,7 @@ char* get_pc_to_avr_header(enum msg_pc_to_avr_t header)
 		case TOGGLE_REPORT_INTEGRATOR: return "TOGGLE_REPORT_INTEGRATOR";
 		case TOGGLE_REPORT_PI_OUTPUT: return "TOGGLE_REPORT_PI_OUTPUT";
 		case TOGGLE_REPORT_SPEED: return "TOGGLE_REPORT_SPEED";
+		case FLIP_POS_CONTROL_DIRECTION: return "FLIP_POS_CONTROL_DIRECTION";
 		default: return "unknown header";
 	}
 }

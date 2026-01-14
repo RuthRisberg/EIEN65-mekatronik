@@ -35,8 +35,7 @@ void setup()
 void set_state_none()
 {
     state = STATE_NONE;
-    setpwm0(255);
-    setpwm1(255);
+    stop_motor();
 }
 
 static uint8_t is_blinking[NUM_LEDS] = {1,0,0,0,0,0};
@@ -175,6 +174,10 @@ void take_input()
         is_reporting_speed = 1-is_reporting_speed;
         break;
 
+    case FLIP_POS_CONTROL_DIRECTION:
+        flip_directions();
+        break;
+
     default:
 		error(UNKNOWN_COMMAND);
 		send(RECEIVED_HEADER, header);
@@ -227,6 +230,9 @@ void continuous_tasks()
 
 int main ()
 {
+    // TODO:
+    // set current speed to zero when not receiving interrupts
+    // button to block spammy status reports
     setup();
     uint16_t wakeup_time = TCNT1;
     while (1)

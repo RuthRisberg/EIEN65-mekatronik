@@ -16,6 +16,7 @@ static uint8_t speed_Ki = 1; // >>SPEED_KI_SR
 static int16_t speed_integrator = 0; // -120*speed_Ki - 255+120*speed_Ki
 static uint8_t reporting_integrator = 0;
 static uint8_t reporting_output = 0;
+static uint8_t flip_direction = 0;
 
 void set_target_speed(uint8_t speed)
 {
@@ -42,7 +43,7 @@ void toggle_reporting_PI_output()
     reporting_output = 1-reporting_output;
 }
 
-void speed_control()
+static void speed_control()
 {
     uint8_t measured_speed = abs(get_speed()); // 0-120 (or maybe slightly more)
     int8_t speed_diff = ((int8_t)target_speed) - ((int8_t)measured_speed); // 0-120, 0-120, -120-120
@@ -77,6 +78,39 @@ void speed_control()
         send(PI_OUTPUT, 255-pi_controller_out);
     }
     setpwm0(255-pi_controller_out);
+}
+
+void flip_directions()
+{
+    flip_direction = 1-flip_direction;
+}
+
+static void position_control()
+{
+    uint8_t measured_pos = read_position(); // idk range
+    int16_t pos_diff = ((int16_t)target_pos) - ((int16_t)measured_pos);
+    if (pos_diff < 5 && pos_diff > -5)
+    {
+        set_enable(0);
+        return;
+    }
+
+    int16_t pos_control_out = pos_diff;
+
+    if (flip_direction)
+        pos_control_out = -pos_control_out;
+
+    if (pos_control_out > 0)
+    {
+        setpwm0(pos_control_out);
+        setpwm1(0);
+    }
+    else
+    {
+        setpwm0(0);
+        setpwm1(-pos_control_out);
+    }
+    set_enable(1);
 }
 
 void run_pid()
