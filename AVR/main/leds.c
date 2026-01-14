@@ -20,7 +20,7 @@ void init_leds()
     DDRC |= 1 << LED3;
     DDRB |= 1 << LED4;
     DDRB |= 1 << LED5;
-	all_leds_off();
+    all_leds_off();
 }
 void all_leds_off()
 {

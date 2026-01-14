@@ -15,8 +15,8 @@ static uint8_t get_motor_mode()
 void init_motor()
 {
     DDRC &= ~(1 << MOTOR_MODE_BTN); // set motor mode jumper as input with pull-up
-	shadow_PORTC |= 1 << MOTOR_MODE_BTN;
-	PORTC = shadow_PORTC;
+    shadow_PORTC |= 1 << MOTOR_MODE_BTN;
+    PORTC = shadow_PORTC;
     stop_motor();
     DDRB |= 1 << ENABLE; // set enable pin as output
     TCCR0A |= (1 << WGM00); // phase correct pwm on motor pins (counter0), WGM01 and WGM02 left at 0

@@ -42,14 +42,14 @@ void init_sensors()
 {
     // buttons
     DDRD &= ~(1 << BTN0);
-	shadow_PORTD |= 1 << BTN0;
-	PORTD = shadow_PORTD;
+    shadow_PORTD |= 1 << BTN0;
+    PORTD = shadow_PORTD;
     DDRB &= ~(1 << BTN1);
-	shadow_PORTB |= 1 << BTN1;
-	PORTB = shadow_PORTB;
+    shadow_PORTB |= 1 << BTN1;
+    PORTB = shadow_PORTB;
     DDRC &= ~(1 << BTN2);
-	shadow_PORTC |= 1 << BTN2;
-	PORTC = shadow_PORTC;
+    shadow_PORTC |= 1 << BTN2;
+    PORTC = shadow_PORTC;
 
     // analog inputs (potentiometer and position)
     ADMUX |= (1 << ADLAR); // left adjust result (most significant 8 bits in ADCH)
@@ -58,17 +58,17 @@ void init_sensors()
     // digital encoder
     // set pins to input with pull-up
     DDRD &= ~(1 << SPD0);
-	shadow_PORTD |= 1 << SPD0;
-	PORTD = shadow_PORTD;
+    shadow_PORTD |= 1 << SPD0;
+    PORTD = shadow_PORTD;
     DDRB &= ~(1 << SPD1);
-	shadow_PORTB |= 1 << SPD1;
-	PORTB = shadow_PORTB;
+    shadow_PORTB |= 1 << SPD1;
+    PORTB = shadow_PORTB;
     // enable interrupts
     PCICR |= (1 << PCIE2); // enable PCINT 23..16
     PCMSK2 = (1 << PCINT23); // enable only PCINT23
     PCICR |= (1 << PCIE0); // enable PCINT 7..0
     PCMSK0 = (1 << PCINT0); // enable only PCINT0
-	// configure clock
+    // configure clock
     if (TIMER1_PRESCALING == 1)
         TCCR1B = 1;
     else if (TIMER1_PRESCALING == 8)
@@ -100,8 +100,8 @@ void report_potentiometer()
 
 uint8_t read_button(uint8_t btn)
 {
-	if (!inited)
-		error(UNINITIALIZED);
+    if (!inited)
+        error(UNINITIALIZED);
     switch (btn)
     {
     case 0:
@@ -125,15 +125,15 @@ uint8_t read_button(uint8_t btn)
     
     default:
         error(INDEX_OUT_OF_BOUNDS);
-		return 0;
+        return 0;
         break;
     }
 }
 
 uint8_t read_potentiometer()
 {
-	if (!inited)
-		error(UNINITIALIZED);
+    if (!inited)
+        error(UNINITIALIZED);
     ADMUX &= 0xf0; // clear pin selection
     ADMUX |= POT; // set the correct pin to read from
     ADCSRA |= (1 << ADSC); // ADC start conversion
@@ -143,8 +143,8 @@ uint8_t read_potentiometer()
 
 uint8_t read_position()
 {
-	if (!inited)
-		error(UNINITIALIZED);
+    if (!inited)
+        error(UNINITIALIZED);
     ADMUX &= 0xf0; // clear pin selection
     ADMUX |= POS; // set the correct pin to read from
     ADCSRA |= (1 << ADSC); // ADC start conversion
@@ -167,7 +167,7 @@ void encoder_interrupt_0()
     // return;
     uint16_t temp = time - last_trigger; // need this subtraction unsigned to handle overflow
     int16_t dt = temp; // might flip sign later so needs to be signed
-	last_trigger = time;
+    last_trigger = time;
 
     if (last_trigger_source == 0)
     {
@@ -224,7 +224,7 @@ void encoder_interrupt_1()
     // return;
     uint16_t temp = time - last_trigger; // need this subtraction unsigned to handle overflow
     int16_t dt = temp; // might flip sign later so needs to be signed
-	last_trigger = time;
+    last_trigger = time;
 
     if (last_trigger_source == 1)
     {
