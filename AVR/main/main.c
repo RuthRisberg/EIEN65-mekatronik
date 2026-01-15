@@ -178,6 +178,14 @@ void take_input()
         flip_directions();
         break;
 
+    case TOGGLE_REPORT_TARGET_SPEED:
+        toggle_reporting_target_speed();
+        break;
+
+    case TOGGLE_USE_POTENTIOMETER:
+        toggle_use_potentiometer();
+        break;
+
     default:
 		error(UNKNOWN_COMMAND);
 		send(RECEIVED_HEADER, header);
@@ -220,7 +228,7 @@ void continuous_tasks()
 
     if (is_reporting_speed)
     {
-        int16_t speed = get_speed();
+        int16_t speed = (uint8_t) abs(get_speed());
         send(SPEED_H, speed>>8);
         send(SPEED_L, speed);
     }

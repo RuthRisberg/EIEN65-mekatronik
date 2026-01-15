@@ -23,10 +23,13 @@ static volatile int stop = 0;
 int read_thread_func(void* serial)
 {
     unsigned char msg_from_avr[MSG_LEN];
-    int header, data, checksum, high_part;
+    int header, data, checksum, high_part, num_read;
+    high_part = 0;
     while (!stop)
     {
-        read(*((int*)serial),&msg_from_avr[0],MSG_LEN); // blocks until a full message is received
+        num_read = read(*((int*)serial),&msg_from_avr[0],MSG_LEN); // blocks until a full message is received
+        if (num_read != 3)
+            printf("wrong num read\n");
 
         header = msg_from_avr[0];
         data = msg_from_avr[1];
@@ -66,7 +69,7 @@ int main(void)
     /*Declaration of variables*/
     int sp;
     thrd_t read_thread;
-    int temp, header, data;
+    int temp, header, data, n_written;
     char buf[20];
     int index = 0;
     
@@ -88,6 +91,8 @@ int main(void)
     assert(temp == thrd_success);
 
     // send messages to serial (read from stdin)
+    header = 0;
+    data = 0;
     while (!stop)
     {
         buf[index] = getchar();
@@ -107,7 +112,9 @@ int main(void)
                 buf[0] = header;
                 buf[1] = data;
                 buf[2] = buf[0] ^ buf[1];
-                write(sp,buf,3);
+                n_written = write(sp,buf,3);
+                if (n_written != 3)
+                    printf("wrong number written\n");
             }
             else if (header == -1)
             {
@@ -118,7 +125,9 @@ int main(void)
                 buf[0] = header;
                 buf[1] = data;
                 buf[2] = buf[0] ^ buf[1];
-                write(sp,buf,3);
+                n_written = write(sp,buf,3);
+                if (n_written != 3)
+                    printf("wrong number written\n");
                 stop = 1;
                 thrd_join(read_thread, &temp);
                 printf("Result of stopping reader thread: %d\n", temp);

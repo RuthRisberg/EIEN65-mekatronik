@@ -44,6 +44,7 @@ char* get_avr_to_pc_header(enum msg_avr_to_pc_t header)
         case INTEGRATOR_H: return "INTEGRATOR_H";
         case INTEGRATOR_L: return "INTEGRATOR_L";
         case PI_OUTPUT: return "PI_OUTPUT";
+        case TARGET_SPEED: return "TARGET_SPEED";
         default: return "unknown header";
     }
 }
@@ -79,6 +80,8 @@ char* get_pc_to_avr_header(enum msg_pc_to_avr_t header)
         case TOGGLE_REPORT_PI_OUTPUT: return "TOGGLE_REPORT_PI_OUTPUT";
         case TOGGLE_REPORT_SPEED: return "TOGGLE_REPORT_SPEED";
         case FLIP_POS_CONTROL_DIRECTION: return "FLIP_POS_CONTROL_DIRECTION";
+        case TOGGLE_REPORT_TARGET_SPEED: return "TOGGLE_REPORT_TARGET_SPEED";
+        case TOGGLE_USE_POTENTIOMETER: return "TOGGLE_USE_POTENTIOMETER";
         default: return "unknown header";
     }
 }
