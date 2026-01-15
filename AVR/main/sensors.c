@@ -26,6 +26,8 @@
 // #define CLOCK_CYCLES_PER_MINUTE (F_CPU*60)
 // #define SPEED_CALC_FACTOR (CLOCK_CYCLES_PER_MINUTE * N_TIMES_SAVED / TIMER1_PRESCALING / TRIGGERS_PER_ROTATION)
 #define SPEED_CALC_FACTOR ((int32_t) 78125) // 10**6 * 60 * 32 / 256 / (24*4)
+// 1s * F_CPU / TIMER1_PRESCALING
+#define TIME_UNTIL_STANDING_STILL 7813 // 2 * 10**6 / 256
 
 #define KEEP_RECENT_TIMES
 
@@ -37,6 +39,7 @@ static int16_t recent_times[N_TIMES_SAVED];
 static int32_t avg_time = 0; // 16 bit is nearly too small for 5rpm, prescaling=256, N_TIMES_SAVED>4
 static uint8_t time_index = 0;
 static uint8_t last_trigger_source = 0;
+static uint8_t standing_still = 1;
 
 void init_sensors()
 {
@@ -158,6 +161,7 @@ void encoder_interrupt_0()
 {
     // not checking initialized because this will run *very* frequently when the motor is spinning fast
     uint16_t time = TCNT1;
+    standing_still = 0;
     // recent_times[time_index] = time;
     // recent_times[time_index] = READSPD0 | READSPD1;
     // time_index++;
@@ -215,6 +219,7 @@ void encoder_interrupt_1()
 {
     // not checking initialized because this will run *very* frequently when the motor is spinning fast
     uint16_t time = TCNT1;
+    standing_still = 0;
     // recent_times[time_index] = time;
     // recent_times[time_index] = READSPD0 | READSPD1;
     // time_index++;
@@ -290,6 +295,11 @@ void report_interrupt_stats()
 
 int16_t get_speed()
 {
+    uint16_t time_since_last = TCNT1 - last_trigger;
+    if (time_since_last > TIME_UNTIL_STANDING_STILL)
+        standing_still = 1;
+    if (standing_still)
+        return 0;
     return SPEED_CALC_FACTOR / avg_time;
 }
 

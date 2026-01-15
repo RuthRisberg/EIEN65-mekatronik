@@ -11,7 +11,7 @@
 
 static uint8_t target_speed = 0; // 0-120
 static uint8_t target_pos = 0;
-static uint8_t speed_Kp = 18; // >>SPEED_KP_SR
+static uint8_t speed_Kp = 22; // >>SPEED_KP_SR
 static uint8_t speed_Ki = 4; // >>SPEED_KI_SR
 static int16_t speed_integrator = 0; // -120*speed_Ki - 255+120*speed_Ki
 static uint8_t reporting_integrator = 0;
